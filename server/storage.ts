@@ -75,7 +75,11 @@ export class MemStorage implements IStorage {
     const post: RedditPost = { 
       ...insertPost, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      upvotes: insertPost.upvotes ?? 0,
+      comments: insertPost.comments ?? 0,
+      author: insertPost.author ?? null,
+      subreddit: insertPost.subreddit ?? null
     };
     this.redditPosts.set(id, post);
     return post;
@@ -96,7 +100,12 @@ export class MemStorage implements IStorage {
     const reply: AiReply = { 
       ...insertReply, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      postId: insertReply.postId ?? null,
+      direction: insertReply.direction ?? null,
+      mood: insertReply.mood ?? null,
+      length: insertReply.length ?? null,
+      wordCount: insertReply.wordCount ?? null
     };
     this.aiReplies.set(id, reply);
     return reply;

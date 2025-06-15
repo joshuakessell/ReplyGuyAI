@@ -11,6 +11,7 @@ import { useTheme } from "@/components/theme-provider";
 import { RedditContentDisplay } from "@/components/reddit-content-display";
 import { CustomizationPanel } from "@/components/customization-panel";
 import { AiResponseDisplay } from "@/components/ai-response-display";
+import { ManualInputDialog } from "@/components/manual-input-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { RedditPost, AiReply, CustomizationData } from "@shared/schema";
 
@@ -39,6 +40,37 @@ export default function Home() {
     onError: (error: Error) => {
       toast({
         title: "Failed to fetch Reddit content",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Manual content input mutation
+  const manualInputMutation = useMutation({
+    mutationFn: async (data: {
+      url: string;
+      title: string;
+      content: string;
+      author: string;
+      subreddit: string;
+      upvotes: number;
+      comments: number;
+    }) => {
+      const response = await apiRequest("POST", "/api/reddit/manual", data);
+      return response.json();
+    },
+    onSuccess: (data: RedditPost) => {
+      setFetchedPost(data);
+      setCurrentStep("content");
+      toast({
+        title: "Content added successfully",
+        description: "You can now customize your AI reply.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to add content",
         description: error.message,
         variant: "destructive",
       });
@@ -208,23 +240,30 @@ export default function Home() {
                   </div>
                 </div>
                 
-                <Button 
-                  type="submit" 
-                  disabled={fetchRedditMutation.isPending}
-                  className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
-                >
-                  {fetchRedditMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Fetching content...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-5 h-5 mr-2" />
-                      Analyze Reddit Content
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    type="submit" 
+                    disabled={fetchRedditMutation.isPending}
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                  >
+                    {fetchRedditMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Fetching content...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-5 h-5 mr-2" />
+                        Analyze Reddit Content
+                      </>
+                    )}
+                  </Button>
+                  
+                  <ManualInputDialog 
+                    onSubmit={(data) => manualInputMutation.mutate(data)}
+                    isSubmitting={manualInputMutation.isPending}
+                  />
+                </div>
               </form>
             </CardContent>
           </Card>
