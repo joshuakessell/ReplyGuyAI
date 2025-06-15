@@ -1,0 +1,87 @@
+Hi there,
+
+I’d like to build a simple yet powerful web app (developed on Replit) that generates AI-crafted replies to Reddit posts and comments based on user customization.
+
+Here’s what the app should do:
+
+✅ Core Features
+Reddit Link Input:
+
+The homepage should have a clean UI with a single input field:
+
+“Paste a Reddit post or comment URL”
+
+Upon submission, the app will:
+
+Parse the Reddit link.
+
+Fetch the original post content and, if it’s a comment, also gather the parent post, preceding comment chain, and the target comment.
+
+Reply Customization Panel:
+Once the content is fetched and displayed in a readable format, show a modal or inline section with:
+
+A text input field labeled:
+
+“What direction should your comment take?”
+
+A reply length selector:
+
+Small (≤20 words)
+
+Medium (~50 words)
+
+Long (~100 words)
+
+Custom (with a small input for word count)
+
+A mood selector with preset options:
+
+Witty
+
+Comforting
+
+Sad
+
+Custom (text input)
+
+A “Create Reply” button
+
+AI Response Generation:
+
+When “Create Reply” is clicked:
+
+Display a “Processing…” animation to indicate it's working.
+
+Use the collected Reddit content + user input (direction, mood, word count) to call an AI API (e.g., OpenAI).
+
+The reply is then shown in a styled container beneath the controls.
+
+Post-Generation Actions:
+Below the AI-generated reply, provide:
+
+🔁 Regenerate Reply
+
+❌ Clear
+
+📋 Copy to Clipboard (to paste back into Reddit manually)
+
+🛠️ Technical Requirements
+Web app built using React (preferred) or Vanilla JS.
+
+Host frontend on Replit, and if needed, create a small Node.js/Express backend to act as a proxy for AI API requests (to hide keys).
+
+Fetch Reddit content either through:
+
+Reddit’s public API (if available for anonymous access), or
+
+Fallback: embed the post/comment HTML and parse it from the DOM with proper sanitization.
+
+All UI should be responsive, clean, and minimal, with support for light and dark modes.
+
+🎯 Goal
+To create a web-based Reddit companion tool that allows users to craft expressive, thoughtful, or funny replies to Reddit posts or comments, guided by AI and customizable intent. This removes the need for a browser extension and allows cross-platform access from any device with a browser.
+
+Let me know if you need mockups or a suggested file structure to start development.
+
+Thanks!
+Joshua
