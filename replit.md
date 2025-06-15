@@ -85,13 +85,41 @@ Located in `extension/` directory:
 - **Connection**: Environment variable DATABASE_URL for connection string
 - **Development**: PostgreSQL 16 module in Replit environment
 
+## Deployment Strategy
+
+### Browser Extension Development
+- **Platform**: Chrome Extension Manifest V3 with cross-browser compatibility
+- **Build Process**: TypeScript compilation with Vite bundling for optimized output
+- **Distribution**: Chrome Web Store publication with enterprise deployment options
+- **Security**: Content Security Policy compliance and minimal permission requirements
+
+### Development Environment
+- **Local Development**: TypeScript watch mode with hot reloading for extension components
+- **Testing**: Content script injection testing on live Reddit pages
+- **Debugging**: Chrome DevTools integration with structured logging output
+- **Build Output**: Optimized extension package ready for store submission
+
+### Extension Architecture Benefits
+- **No API Limits**: Direct DOM content reading eliminates Reddit API restrictions
+- **Real-time Integration**: Seamless UI injection without page navigation
+- **Privacy-First**: All data processing happens locally in browser
+- **Cross-Platform**: Works on any Chromium-based browser (Chrome, Edge, Brave, etc.)
+
 ## Changelog
 ```
 Changelog:
-- June 15, 2025. Initial setup
+- June 15, 2025. Initial web app setup with Reddit API integration
+- June 15, 2025. Complete rewrite as enterprise-grade browser extension
+  * Eliminated Reddit API fetching limitations with direct DOM parsing
+  * Implemented comprehensive error handling and structured logging
+  * Added enterprise-level TypeScript architecture with full type safety
+  * Created seamless Reddit page integration with UI injection
+  * Built professional extension popup and settings management
 ```
 
 ## User Preferences
 ```
 Preferred communication style: Simple, everyday language.
+Target deployment: Enterprise-level browser extension for GitHub publication.
+Code quality: Human-authored appearance with professional development practices.
 ```
