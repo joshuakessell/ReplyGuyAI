@@ -151,309 +151,513 @@ class RedditReplyAI {
       container.style.color = '#d7dadc';
     }
 
-    container.innerHTML = this.getUIHTML();
+    this.buildUIStructure(container);
     this.attachEventListeners(container);
 
     return container;
   }
 
   /**
-   * Get the HTML for the UI
+   * Build UI structure using safe DOM methods
    */
-  private getUIHTML(): string {
-    return `
-      <div id="rai-header" style="
-        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px 8px 0 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      ">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-          <span style="font-weight: 600;">Reddit Reply AI</span>
-        </div>
-        <button id="rai-minimize" style="
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 4px;
-        ">−</button>
-      </div>
-
-      <div id="rai-content" style="padding: 20px;">
-        <div id="rai-step-1" class="rai-step">
-          <button id="rai-detect-content" style="
-            background: #0079d3;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            width: 100%;
-            margin-bottom: 16px;
-          ">📖 Analyze Current Reddit Content</button>
-          
-          <div id="rai-content-preview" style="display: none;">
-            <div style="
-              background: #f8f9fa;
-              border: 1px solid #e9ecef;
-              border-radius: 6px;
-              padding: 16px;
-              margin-bottom: 16px;
-            ">
-              <h4 style="margin: 0 0 8px 0; color: #1a1a1b;">Detected Content:</h4>
-              <div id="rai-content-text" style="font-size: 14px; color: #7c7c83;"></div>
-              <div id="rai-content-meta" style="font-size: 12px; color: #878a8c; margin-top: 8px;"></div>
-            </div>
-            <button id="rai-proceed" style="
-              background: #46d160;
-              color: white;
-              border: none;
-              padding: 12px 24px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              width: 100%;
-            ">✨ Generate AI Reply</button>
-          </div>
-        </div>
-
-        <div id="rai-step-2" class="rai-step" style="display: none;">
-          <h3 style="margin: 0 0 16px 0; color: #1a1a1b;">Customize Your Reply</h3>
-          
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;">
-              What direction should your reply take?
-            </label>
-            <textarea id="rai-direction" placeholder="e.g., Provide helpful advice, Share a different perspective, Ask follow-up questions..." style="
-              width: 100%;
-              padding: 12px;
-              border: 1px solid #e0e0e0;
-              border-radius: 6px;
-              resize: vertical;
-              min-height: 80px;
-              font-family: inherit;
-              box-sizing: border-box;
-            "></textarea>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-            <div>
-              <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;">Length</label>
-              <select id="rai-length" style="
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                background: white;
-              ">
-                <option value="small">Short (~25 words)</option>
-                <option value="medium" selected>Medium (~75 words)</option>
-                <option value="large">Long (~150 words)</option>
-                <option value="custom">Custom</option>
-              </select>
-              <input id="rai-custom-length" type="number" min="10" max="300" value="75" style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                margin-top: 8px;
-                display: none;
-              " placeholder="Word count">
-            </div>
-
-            <div>
-              <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;">Mood</label>
-              <select id="rai-mood" style="
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                background: white;
-              ">
-                <option value="supportive" selected>Supportive</option>
-                <option value="witty">Witty</option>
-                <option value="analytical">Analytical</option>
-                <option value="casual">Casual</option>
-                <option value="professional">Professional</option>
-                <option value="custom">Custom</option>
-              </select>
-              <input id="rai-custom-mood" type="text" style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                margin-top: 8px;
-                display: none;
-              " placeholder="Describe the mood">
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 12px;">
-            <button id="rai-back" style="
-              background: #878a8c;
-              color: white;
-              border: none;
-              padding: 12px 24px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              flex: 1;
-            ">← Back</button>
-            <button id="rai-generate" style="
-              background: #ff4500;
-              color: white;
-              border: none;
-              padding: 12px 24px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              flex: 2;
-            ">🚀 Generate Reply</button>
-          </div>
-        </div>
-
-        <div id="rai-step-3" class="rai-step" style="display: none;">
-          <h3 style="margin: 0 0 16px 0; color: #1a1a1b;">Generated Reply</h3>
-          
-          <div id="rai-reply-container" style="
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 16px;
-          ">
-            <div id="rai-reply-text" style="
-              font-size: 14px;
-              line-height: 1.5;
-              color: #1a1a1b;
-              white-space: pre-wrap;
-            "></div>
-            <div id="rai-reply-stats" style="
-              font-size: 12px;
-              color: #878a8c;
-              margin-top: 12px;
-              padding-top: 12px;
-              border-top: 1px solid #e9ecef;
-            "></div>
-          </div>
-
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button id="rai-copy" style="
-              background: #46d160;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              flex: 1;
-              min-width: 120px;
-            ">📋 Copy</button>
-            <button id="rai-regenerate" style="
-              background: #0079d3;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              flex: 1;
-              min-width: 120px;
-            ">🔄 Regenerate</button>
-            <button id="rai-new" style="
-              background: #878a8c;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 500;
-              flex: 1;
-              min-width: 120px;
-            ">✨ New Reply</button>
-          </div>
-        </div>
-
-        <div id="rai-loading" style="display: none; text-align: center; padding: 40px;">
-          <div style="
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #ff4500;
-            border-radius: 50%;
-            animation: rai-spin 1s linear infinite;
-          "></div>
-          <p style="margin: 16px 0 0 0; color: #878a8c;">Generating your AI reply...</p>
-        </div>
-
-        <div id="rai-error" style="display: none;">
-          <div style="
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 16px;
-          ">
-            <h4 style="margin: 0 0 8px 0; color: #d32f2f;">Error</h4>
-            <p id="rai-error-message" style="margin: 0; color: #d32f2f;"></p>
-          </div>
-          <button id="rai-retry" style="
-            background: #ff4500;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            width: 100%;
-          ">🔄 Try Again</button>
-        </div>
-      </div>
-
-      <style>
-        @keyframes rai-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        [data-theme="dark"] #reddit-reply-ai-container {
-          background: #1a1a1b !important;
-          border-color: #343536 !important;
-          color: #d7dadc !important;
-        }
-        
-        [data-theme="dark"] #reddit-reply-ai-container h3,
-        [data-theme="dark"] #reddit-reply-ai-container h4,
-        [data-theme="dark"] #reddit-reply-ai-container label {
-          color: #d7dadc !important;
-        }
-        
-        [data-theme="dark"] #reddit-reply-ai-container textarea,
-        [data-theme="dark"] #reddit-reply-ai-container select,
-        [data-theme="dark"] #reddit-reply-ai-container input {
-          background: #272729 !important;
-          border-color: #343536 !important;
-          color: #d7dadc !important;
-        }
-        
-        [data-theme="dark"] #rai-content-preview > div,
-        [data-theme="dark"] #rai-reply-container {
-          background: #272729 !important;
-          border-color: #343536 !important;
-        }
-      </style>
+  private buildUIStructure(container: HTMLElement): void {
+    // Create header
+    const header = document.createElement('div');
+    header.id = 'rai-header';
+    header.style.cssText = `
+      background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     `;
+
+    // Header content
+    const headerLeft = document.createElement('div');
+    headerLeft.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+    
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('width', '20');
+    icon.setAttribute('height', '20');
+    icon.setAttribute('viewBox', '0 0 24 24');
+    icon.setAttribute('fill', 'currentColor');
+    const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    iconPath.setAttribute('d', 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z');
+    icon.appendChild(iconPath);
+    
+    const title = document.createElement('span');
+    title.style.fontWeight = '600';
+    title.textContent = 'Reddit Reply AI';
+    
+    headerLeft.appendChild(icon);
+    headerLeft.appendChild(title);
+
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.id = 'rai-minimize';
+    minimizeBtn.style.cssText = `
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    `;
+    minimizeBtn.textContent = '−';
+
+    header.appendChild(headerLeft);
+    header.appendChild(minimizeBtn);
+
+    // Create content container
+    const content = document.createElement('div');
+    content.id = 'rai-content';
+    content.style.padding = '20px';
+
+    // Build all steps
+    this.buildStep1(content);
+    this.buildStep2(content);
+    this.buildStep3(content);
+    this.buildLoadingState(content);
+    this.buildErrorState(content);
+
+    container.appendChild(header);
+    container.appendChild(content);
+
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes rai-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
   }
+
+  /**
+   * Build step 1 UI
+   */
+  private buildStep1(parent: HTMLElement): void {
+    const step1 = document.createElement('div');
+    step1.id = 'rai-step-1';
+    step1.className = 'rai-step';
+
+    const detectBtn = document.createElement('button');
+    detectBtn.id = 'rai-detect-content';
+    detectBtn.style.cssText = `
+      background: #0079d3;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      width: 100%;
+      margin-bottom: 16px;
+    `;
+    detectBtn.textContent = '📖 Analyze Current Reddit Content';
+
+    const preview = document.createElement('div');
+    preview.id = 'rai-content-preview';
+    preview.style.display = 'none';
+
+    const previewBox = document.createElement('div');
+    previewBox.style.cssText = `
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    `;
+
+    const previewTitle = document.createElement('h4');
+    previewTitle.style.cssText = 'margin: 0 0 8px 0; color: #1a1a1b;';
+    previewTitle.textContent = 'Detected Content:';
+
+    const previewText = document.createElement('div');
+    previewText.id = 'rai-content-text';
+    previewText.style.cssText = 'font-size: 14px; color: #7c7c83;';
+
+    const previewMeta = document.createElement('div');
+    previewMeta.id = 'rai-content-meta';
+    previewMeta.style.cssText = 'font-size: 12px; color: #878a8c; margin-top: 8px;';
+
+    previewBox.appendChild(previewTitle);
+    previewBox.appendChild(previewText);
+    previewBox.appendChild(previewMeta);
+
+    const proceedBtn = document.createElement('button');
+    proceedBtn.id = 'rai-proceed';
+    proceedBtn.style.cssText = `
+      background: #46d160;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      width: 100%;
+    `;
+    proceedBtn.textContent = '✨ Generate AI Reply';
+
+    preview.appendChild(previewBox);
+    preview.appendChild(proceedBtn);
+
+    step1.appendChild(detectBtn);
+    step1.appendChild(preview);
+    parent.appendChild(step1);
+  }
+
+  /**
+   * Build step 2 UI
+   */
+  private buildStep2(parent: HTMLElement): void {
+    const step2 = document.createElement('div');
+    step2.id = 'rai-step-2';
+    step2.className = 'rai-step';
+    step2.style.display = 'none';
+
+    const title = document.createElement('h3');
+    title.style.cssText = 'margin: 0 0 16px 0; color: #1a1a1b;';
+    title.textContent = 'Customize Your Reply';
+
+    // Direction field
+    const directionGroup = document.createElement('div');
+    directionGroup.style.marginBottom = '16px';
+
+    const directionLabel = document.createElement('label');
+    directionLabel.style.cssText = 'display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;';
+    directionLabel.textContent = 'What direction should your reply take?';
+
+    const directionTextarea = document.createElement('textarea');
+    directionTextarea.id = 'rai-direction';
+    directionTextarea.placeholder = 'e.g., Provide helpful advice, Share a different perspective, Ask follow-up questions...';
+    directionTextarea.style.cssText = `
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      box-sizing: border-box;
+    `;
+
+    directionGroup.appendChild(directionLabel);
+    directionGroup.appendChild(directionTextarea);
+
+    // Grid for length and mood
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;';
+
+    // Length field
+    const lengthGroup = document.createElement('div');
+    const lengthLabel = document.createElement('label');
+    lengthLabel.style.cssText = 'display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;';
+    lengthLabel.textContent = 'Length';
+
+    const lengthSelect = document.createElement('select');
+    lengthSelect.id = 'rai-length';
+    lengthSelect.style.cssText = `
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: white;
+    `;
+
+    const lengthOptions = [
+      { value: 'small', text: 'Short (~25 words)' },
+      { value: 'medium', text: 'Medium (~75 words)', selected: true },
+      { value: 'large', text: 'Long (~150 words)' },
+      { value: 'custom', text: 'Custom' }
+    ];
+
+    lengthOptions.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.text;
+      if (opt.selected) option.selected = true;
+      lengthSelect.appendChild(option);
+    });
+
+    const customLengthInput = document.createElement('input');
+    customLengthInput.id = 'rai-custom-length';
+    customLengthInput.type = 'number';
+    customLengthInput.min = '10';
+    customLengthInput.max = '300';
+    customLengthInput.value = '75';
+    customLengthInput.placeholder = 'Word count';
+    customLengthInput.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-top: 8px;
+      display: none;
+    `;
+
+    lengthGroup.appendChild(lengthLabel);
+    lengthGroup.appendChild(lengthSelect);
+    lengthGroup.appendChild(customLengthInput);
+
+    // Mood field
+    const moodGroup = document.createElement('div');
+    const moodLabel = document.createElement('label');
+    moodLabel.style.cssText = 'display: block; font-weight: 500; margin-bottom: 8px; color: #1a1a1b;';
+    moodLabel.textContent = 'Mood';
+
+    const moodSelect = document.createElement('select');
+    moodSelect.id = 'rai-mood';
+    moodSelect.style.cssText = `
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: white;
+    `;
+
+    const moodOptions = [
+      { value: 'supportive', text: 'Supportive', selected: true },
+      { value: 'witty', text: 'Witty' },
+      { value: 'analytical', text: 'Analytical' },
+      { value: 'casual', text: 'Casual' },
+      { value: 'professional', text: 'Professional' },
+      { value: 'custom', text: 'Custom' }
+    ];
+
+    moodOptions.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.text;
+      if (opt.selected) option.selected = true;
+      moodSelect.appendChild(option);
+    });
+
+    const customMoodInput = document.createElement('input');
+    customMoodInput.id = 'rai-custom-mood';
+    customMoodInput.type = 'text';
+    customMoodInput.placeholder = 'Describe the mood';
+    customMoodInput.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-top: 8px;
+      display: none;
+    `;
+
+    moodGroup.appendChild(moodLabel);
+    moodGroup.appendChild(moodSelect);
+    moodGroup.appendChild(customMoodInput);
+
+    grid.appendChild(lengthGroup);
+    grid.appendChild(moodGroup);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 12px;';
+
+    const backBtn = document.createElement('button');
+    backBtn.id = 'rai-back';
+    backBtn.style.cssText = `
+      background: #878a8c;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      flex: 1;
+    `;
+    backBtn.textContent = '← Back';
+
+    const generateBtn = document.createElement('button');
+    generateBtn.id = 'rai-generate';
+    generateBtn.style.cssText = `
+      background: #ff4500;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      flex: 2;
+    `;
+    generateBtn.textContent = '🚀 Generate Reply';
+
+    buttonContainer.appendChild(backBtn);
+    buttonContainer.appendChild(generateBtn);
+
+    step2.appendChild(title);
+    step2.appendChild(directionGroup);
+    step2.appendChild(grid);
+    step2.appendChild(buttonContainer);
+    parent.appendChild(step2);
+  }
+
+  /**
+   * Build step 3 UI
+   */
+  private buildStep3(parent: HTMLElement): void {
+    const step3 = document.createElement('div');
+    step3.id = 'rai-step-3';
+    step3.className = 'rai-step';
+    step3.style.display = 'none';
+
+    const title = document.createElement('h3');
+    title.style.cssText = 'margin: 0 0 16px 0; color: #1a1a1b;';
+    title.textContent = 'Generated Reply';
+
+    const replyContainer = document.createElement('div');
+    replyContainer.id = 'rai-reply-container';
+    replyContainer.style.cssText = `
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    `;
+
+    const replyText = document.createElement('div');
+    replyText.id = 'rai-reply-text';
+    replyText.style.cssText = `
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1a1a1b;
+      white-space: pre-wrap;
+    `;
+
+    const replyStats = document.createElement('div');
+    replyStats.id = 'rai-reply-stats';
+    replyStats.style.cssText = `
+      font-size: 12px;
+      color: #878a8c;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e9ecef;
+    `;
+
+    replyContainer.appendChild(replyText);
+    replyContainer.appendChild(replyStats);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 12px; flex-wrap: wrap;';
+
+    const buttons = [
+      { id: 'rai-copy', text: '📋 Copy', bg: '#46d160' },
+      { id: 'rai-regenerate', text: '🔄 Regenerate', bg: '#0079d3' },
+      { id: 'rai-new', text: '✨ New Reply', bg: '#878a8c' }
+    ];
+
+    buttons.forEach(btnData => {
+      const btn = document.createElement('button');
+      btn.id = btnData.id;
+      btn.style.cssText = `
+        background: ${btnData.bg};
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        flex: 1;
+        min-width: 120px;
+      `;
+      btn.textContent = btnData.text;
+      buttonContainer.appendChild(btn);
+    });
+
+    step3.appendChild(title);
+    step3.appendChild(replyContainer);
+    step3.appendChild(buttonContainer);
+    parent.appendChild(step3);
+  }
+
+  /**
+   * Build loading state
+   */
+  private buildLoadingState(parent: HTMLElement): void {
+    const loading = document.createElement('div');
+    loading.id = 'rai-loading';
+    loading.style.cssText = 'display: none; text-align: center; padding: 40px;';
+
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #ff4500;
+      border-radius: 50%;
+      animation: rai-spin 1s linear infinite;
+    `;
+
+    const loadingText = document.createElement('p');
+    loadingText.style.cssText = 'margin: 16px 0 0 0; color: #878a8c;';
+    loadingText.textContent = 'Generating your AI reply...';
+
+    loading.appendChild(spinner);
+    loading.appendChild(loadingText);
+    parent.appendChild(loading);
+  }
+
+  /**
+   * Build error state
+   */
+  private buildErrorState(parent: HTMLElement): void {
+    const error = document.createElement('div');
+    error.id = 'rai-error';
+    error.style.display = 'none';
+
+    const errorContainer = document.createElement('div');
+    errorContainer.style.cssText = `
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    `;
+
+    const errorIcon = document.createElement('div');
+    errorIcon.style.cssText = 'color: #e53e3e; font-size: 24px; text-align: center; margin-bottom: 8px;';
+    errorIcon.textContent = '⚠️';
+
+    const errorTitle = document.createElement('h4');
+    errorTitle.style.cssText = 'margin: 0 0 8px 0; color: #c53030; text-align: center;';
+    errorTitle.textContent = 'Generation Failed';
+
+    const errorMessage = document.createElement('div');
+    errorMessage.id = 'rai-error-message';
+    errorMessage.style.cssText = 'color: #742a2a; text-align: center; font-size: 14px;';
+
+    const retryBtn = document.createElement('button');
+    retryBtn.id = 'rai-retry';
+    retryBtn.style.cssText = `
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      width: 100%;
+      margin-top: 12px;
+    `;
+    retryBtn.textContent = '🔄 Try Again';
+
+    errorContainer.appendChild(errorIcon);
+    errorContainer.appendChild(errorTitle);
+    errorContainer.appendChild(errorMessage);
+    errorContainer.appendChild(retryBtn);
+
+    error.appendChild(errorContainer);
+    parent.appendChild(error);
+  }
+
+
 
   /**
    * Check if dark mode is enabled
