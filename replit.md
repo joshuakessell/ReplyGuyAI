@@ -1,57 +1,49 @@
 # replit.md
 
 ## Overview
-This is a Reddit Reply AI application that generates intelligent, customized responses to Reddit posts and comments. The application features a modern web interface built with React, TypeScript, and shadcn/ui components, backed by an Express.js server with PostgreSQL database integration via Drizzle ORM.
+This is an enterprise-grade Reddit Reply AI browser extension that generates intelligent, customized responses to Reddit posts and comments directly within the Reddit interface. The extension eliminates API fetching limitations by reading content directly from the page DOM and features comprehensive error handling, logging, and user data management.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **UI Library**: shadcn/ui components built on Radix UI primitives
-- **Styling**: TailwindCSS with CSS variables for theming
-- **State Management**: TanStack Query (React Query) for server state
-- **Routing**: wouter for client-side routing
-- **Build Tool**: Vite with custom configuration for development and production
+### Browser Extension Architecture
+- **Platform**: Chrome Extension Manifest V3
+- **Content Scripts**: Direct DOM manipulation and UI injection into Reddit pages
+- **Background Service**: Handles AI API communication and extension lifecycle
+- **Storage**: Chrome Extension APIs for settings and reply history
+- **Permissions**: Active tab access for Reddit.com domains only
 
-### Backend Architecture
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js with middleware for JSON parsing and logging
-- **Database ORM**: Drizzle ORM with PostgreSQL dialect
-- **Database Provider**: Neon Database (@neondatabase/serverless)
-- **API Integration**: OpenAI for AI response generation
-- **Session Management**: Built-in storage abstraction with memory fallback
+### Core Services
+- **AI Service**: OpenAI GPT-4o integration with retry logic and error handling
+- **Reddit Extractor**: DOM-based content extraction supporting multiple Reddit layouts
+- **Storage Service**: Encrypted settings and reply history management
+- **Logger**: Enterprise-grade structured logging with storage and export
+- **Error Handler**: Comprehensive error categorization and user-friendly messaging
 
 ## Key Components
 
-### Database Schema
-Located in `shared/schema.ts`:
-- **users**: User authentication and management
-- **redditPosts**: Stores fetched Reddit content (URL, title, content, metadata)
-- **aiReplies**: Generated AI responses with customization parameters
+### Extension Components
+Located in `extension/` directory:
+- **Content Script**: Injects AI reply generator UI directly into Reddit pages
+- **Background Service**: Handles AI API communication and extension lifecycle
+- **Reddit Extractor**: Reads post/comment data directly from Reddit DOM
+- **Popup Interface**: Settings and configuration management
+- **Storage Service**: Manages user preferences and reply history
 
-### Frontend Components
-- **Home Page**: Main interface with multi-step workflow (URL input → content display → customization → AI response)
-- **Reddit Content Display**: Shows fetched Reddit posts/comments with metadata
-- **Customization Panel**: User input for reply direction, length, and mood preferences
-- **AI Response Display**: Generated reply with copy functionality and regeneration options
-- **Theme Provider**: Light/dark theme support with system preference detection
-
-### Backend Services
-- **Reddit API Integration**: Fetches and parses Reddit content from URLs
-- **OpenAI Integration**: Generates customized responses based on user preferences
-- **Storage Layer**: Abstracted data access with memory-based implementation
-- **API Routes**: RESTful endpoints for Reddit fetching and AI generation
+### Core Services
+- **AI Service**: OpenAI GPT-4o integration with enterprise-grade error handling
+- **Logger**: Structured logging with storage and debugging capabilities  
+- **Error Handler**: Categorized error handling with user-friendly messaging
+- **Storage Service**: Chrome extension storage with data export/import
 
 ## Data Flow
 
-1. **URL Input**: User pastes Reddit URL on homepage
-2. **Content Fetching**: Backend validates URL and fetches Reddit content
-3. **Data Storage**: Reddit post/comment stored in database with metadata
-4. **Content Display**: Frontend shows fetched content in readable format
-5. **Customization**: User specifies reply direction, length, and mood
-6. **AI Generation**: Backend sends context and preferences to OpenAI
-7. **Response Storage**: Generated reply saved with parameters
-8. **Display & Interaction**: User can copy, regenerate, or clear responses
+1. **Page Detection**: Content script detects Reddit post or comment page
+2. **UI Injection**: AI reply generator interface injected into page
+3. **Content Extraction**: DOM parser extracts post/comment content and metadata
+4. **Customization**: User specifies reply direction, length, mood, and tone
+5. **AI Generation**: Background service calls OpenAI API with structured prompts
+6. **Response Display**: Generated reply shown with copy and regeneration options
+7. **History Storage**: Successful replies stored locally with full context
 
 ## External Dependencies
 
