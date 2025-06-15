@@ -214,6 +214,17 @@ export default function Home() {
 
           <Card className="p-8 mb-8">
             <CardContent className="p-0">
+              {/* Information Banner */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                <div className="flex">
+                  <HelpCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-amber-800 dark:text-amber-200">
+                    <p className="font-medium mb-1">Having trouble fetching Reddit content?</p>
+                    <p>Reddit sometimes blocks automated requests. If the URL fetching fails, use the "Enter Reddit Content Manually" button to copy and paste the content directly.</p>
+                  </div>
+                </div>
+              </div>
+
               <form onSubmit={handleUrlSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="redditUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-left flex items-center">
@@ -293,7 +304,7 @@ export default function Home() {
         )}
 
         {/* Processing Overlay */}
-        {(fetchRedditMutation.isPending || generateReplyMutation.isPending) && (
+        {(fetchRedditMutation.isPending || manualInputMutation.isPending || generateReplyMutation.isPending) && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <Card className="max-w-sm mx-4">
               <CardContent className="p-8 text-center">
@@ -304,6 +315,8 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
                   {fetchRedditMutation.isPending 
                     ? "Fetching Reddit content..."
+                    : manualInputMutation.isPending
+                    ? "Adding your content..."
                     : "Analyzing content and generating your reply"
                   }
                 </p>
