@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Reddit Reply AI",
+  "version": "2.0.0",
+  "description": "AI-powered Reddit reply generation with customizable tone, length, and direction",
+  "author": "Reddit Reply AI Team",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.reddit.com/*",
+    "*://*.openai.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["dist/content-script.js"],
+      "css": ["dist/content-script.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "action": {
+    "default_popup": "dist/popup.html",
+    "default_title": "Reddit Reply AI",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/*", "icons/*"],
+      "matches": ["*://*.reddit.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
