@@ -134,6 +134,12 @@ Changelog:
   * Generated extension icons and fixed manifest.json file paths
   * Extension now ready for Chrome Web Store publication at dist/public/
   * All components properly compiled and ready for production deployment
+- June 16, 2025. Fixed Chrome extension manifest paths and popup navigation errors
+  * Corrected manifest.json file paths to reference correct script locations
+  * Fixed popup HTML navigation issue causing ERR_FILE_NOT_FOUND errors
+  * Created build-extension-only.js for streamlined extension compilation
+  * Extension now loads correctly in Chrome with working popup interface
+  * Ready for end-user installation and configuration with OpenAI API key
 ```
 
 ## User Preferences
