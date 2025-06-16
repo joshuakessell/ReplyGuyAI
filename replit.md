@@ -120,6 +120,12 @@ Changelog:
   * Fixed installation instructions to use correct build script (npm run build)
   * Updated repository URLs to correct GitHub: https://github.com/joshuakessell/ReplyGuyAI
   * Corrected Chrome extension loading path to dist/public folder
+- June 15, 2025. Fixed browser extension manifest and naming consistency
+  * Created complete Chrome Extension Manifest V3 structure in dist/public/
+  * Updated project root manifest.json to use "ReplyGuy.AI" name
+  * Fixed all extension source files to use consistent "ReplyGuy.AI" branding
+  * Updated GitHub URLs throughout extension popup and background files
+  * Rebuilt extension with correct naming for Chrome Web Store readiness
 ```
 
 ## User Preferences

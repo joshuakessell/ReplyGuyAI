@@ -131,7 +131,7 @@ class RedditReplyAI {
    */
   private createUIContainer(): HTMLElement {
     const container = document.createElement('div');
-    container.id = 'reddit-reply-ai-container';
+    container.id = 'replyguy-ai-container';
     container.style.cssText = `
       background: #ffffff;
       border: 1px solid #e0e0e0;

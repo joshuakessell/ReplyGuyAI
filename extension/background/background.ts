@@ -73,15 +73,15 @@ class BackgroundService {
     chrome.runtime.onInstalled.addListener(async () => {
       try {
         await chrome.contextMenus.create({
-          id: 'reddit-reply-ai-generate',
+          id: 'replyguy-ai-generate',
           title: 'Generate AI Reply',
           contexts: ['selection', 'page'],
           documentUrlPatterns: ['*://*.reddit.com/*']
         });
 
         await chrome.contextMenus.create({
-          id: 'reddit-reply-ai-settings',
-          title: 'Reddit Reply AI Settings',
+          id: 'replyguy-ai-settings',
+          title: 'ReplyGuy.AI Settings',
           contexts: ['action']
         });
 
@@ -93,14 +93,14 @@ class BackgroundService {
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       try {
-        if (info.menuItemId === 'reddit-reply-ai-generate' && tab?.id) {
+        if (info.menuItemId === 'replyguy-ai-generate' && tab?.id) {
           await chrome.tabs.sendMessage(tab.id, {
             type: 'SHOW_REPLY_GENERATOR',
             selectedText: info.selectionText
           });
         }
         
-        if (info.menuItemId === 'reddit-reply-ai-settings') {
+        if (info.menuItemId === 'replyguy-ai-settings') {
           chrome.tabs.create({
             url: chrome.runtime.getURL('popup/options.html')
           });
