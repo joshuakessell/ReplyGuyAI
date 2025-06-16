@@ -99,9 +99,9 @@ class BackgroundService {
     chrome.runtime.onInstalled.addListener(async () => {
       try {
         await chrome.contextMenus.create({
-          id: 'replyguy-ai-generate',
-          title: 'Generate AI Reply',
-          contexts: ['selection', 'page'],
+          id: 'replyguy-ai-help-write',
+          title: 'ReplyGuy.AI',
+          contexts: ['editable'],
           documentUrlPatterns: ['*://*.reddit.com/*']
         });
 
@@ -115,10 +115,10 @@ class BackgroundService {
     if (chrome.contextMenus.onClicked) {
       chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         try {
-          if (info.menuItemId === 'replyguy-ai-generate' && tab?.id) {
+          if (info.menuItemId === 'replyguy-ai-help-write' && tab?.id) {
             await chrome.tabs.sendMessage(tab.id, {
-              type: 'SHOW_REPLY_GENERATOR',
-              selectedText: info.selectionText
+              type: 'SHOW_HELP_WRITE_MODAL',
+              data: { editable: info.editable }
             });
           }
         } catch (error) {

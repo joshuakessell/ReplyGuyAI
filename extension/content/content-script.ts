@@ -42,9 +42,9 @@ class RedditReplyAI {
         return;
       }
 
-      // Setup hover-based interface for reply textboxes
+      // Setup context menu detection for textboxes
       setTimeout(() => {
-        this.setupHoverInterface();
+        this.setupContextMenuDetection();
         this.setupObservers();
       }, 1000);
 
@@ -64,20 +64,48 @@ class RedditReplyAI {
   }
 
   /**
-   * Setup hover-based interface for reply textboxes
+   * Setup context menu detection for textboxes
    */
-  private setupHoverInterface(): void {
+  private setupContextMenuDetection(): void {
     try {
-      // Find all reply textboxes on the page
-      const textboxes = this.findReplyTextboxes();
+      // Store reference to active textbox for context menu
+      document.addEventListener('contextmenu', (event) => {
+        const target = event.target as Element;
+        if (this.isReplyTextbox(target)) {
+          // Store the textbox reference for context menu action
+          (window as any).replyGuyActiveTextbox = target;
+          this.logger.debug('Context menu on reply textbox detected');
+        } else {
+          (window as any).replyGuyActiveTextbox = null;
+        }
+      });
       
-      textboxes.forEach(textbox => this.attachHoverEvents(textbox));
-      
-      this.logger.info('Setup hover interface for textboxes', { count: textboxes.length });
+      this.logger.info('Context menu detection setup complete');
       
     } catch (error) {
-      this.errorHandler.handle(error as Error, 'Hover interface setup');
+      this.errorHandler.handle(error as Error, 'Context menu detection setup');
     }
+  }
+
+  /**
+   * Check if element is a reply textbox
+   */
+  private isReplyTextbox(element: Element): boolean {
+    if (!element) return false;
+    
+    const textboxSelectors = [
+      '[data-testid="comment-submission-form-richtext"]',
+      'textarea[placeholder*="comment"]',
+      'textarea[placeholder*="reply"]',
+      '.usertext-edit textarea',
+      '[contenteditable="true"][data-testid*="comment"]',
+      '.public-DraftEditor-content',
+      'div[role="textbox"]'
+    ];
+    
+    return textboxSelectors.some(selector => 
+      element.matches(selector) || element.closest(selector)
+    );
   }
 
   /**
@@ -1537,8 +1565,8 @@ class RedditReplyAI {
       });
       
       if (shouldReinject) {
-        // Re-setup hover interface after a small delay to ensure content is ready
-        setTimeout(() => this.setupHoverInterface(), 500);
+        // Re-setup context menu detection after a small delay to ensure content is ready
+        setTimeout(() => this.setupContextMenuDetection(), 500);
       }
     });
 
