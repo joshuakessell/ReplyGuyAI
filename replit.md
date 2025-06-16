@@ -1,7 +1,7 @@
 # replit.md
 
 ## Overview
-This is an enterprise-grade Reddit Reply AI browser extension that generates intelligent, customized responses to Reddit posts and comments directly within the Reddit interface. The extension eliminates API fetching limitations by reading content directly from the page DOM and features comprehensive error handling, logging, and user data management.
+This is ReplyGuy.AI, an enterprise-grade Reddit Reply AI browser extension that generates intelligent, customized responses to Reddit posts and comments directly within the Reddit interface. The extension eliminates API fetching limitations by reading content directly from the page DOM and features comprehensive error handling, logging, and user data management.
 
 ## System Architecture
 
@@ -115,6 +115,11 @@ Changelog:
   * Added enterprise-level TypeScript architecture with full type safety
   * Created seamless Reddit page integration with UI injection
   * Built professional extension popup and settings management
+- June 15, 2025. Updated README documentation
+  * Changed app name from "Reddit Reply AI" to "ReplyGuy.AI"
+  * Fixed installation instructions to use correct build script (npm run build)
+  * Updated repository URLs and references throughout documentation
+  * Corrected Chrome extension loading path to dist/public folder
 ```
 
 ## User Preferences

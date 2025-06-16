@@ -1,4 +1,4 @@
-# Reddit Reply AI - Browser Extension
+# ReplyGuy.AI - Browser Extension
 
 An enterprise-grade browser extension that generates intelligent, customized AI replies for Reddit posts and comments. Built with TypeScript, featuring comprehensive error handling, structured logging, and seamless Reddit integration.
 
@@ -35,8 +35,8 @@ An enterprise-grade browser extension that generates intelligent, customized AI 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/reddit-reply-ai.git
-cd reddit-reply-ai
+git clone https://github.com/joshuakessell/ReplyGuyAI.git
+cd ReplyGuyAI
 ```
 
 2. Install dependencies:
@@ -46,14 +46,14 @@ npm install
 
 3. Build the extension:
 ```bash
-npm run build:extension
+npm run build
 ```
 
 4. Load in Chrome:
    - Open `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select the `dist` folder
+   - Select the `dist/public` folder
 
 ### Configuration
 
@@ -113,17 +113,14 @@ npm run dev
 # Production build
 npm run build
 
-# Package extension for distribution
-npm run package:extension
-
-# Run tests
-npm test
+# Start production server
+npm run start
 
 # Type checking
-npm run type-check
+npm run check
 
-# Linting
-npm run lint
+# Database schema push
+npm run db:push
 ```
 
 ### Code Quality
@@ -213,9 +210,9 @@ Enable debug logging by setting the log level in extension popup:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/reddit-reply-ai/issues)
-- **Documentation**: [Wiki](https://github.com/your-username/reddit-reply-ai/wiki)
-- **Community**: [Discussions](https://github.com/your-username/reddit-reply-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/your-username/replyguy-ai/issues)
+- **Documentation**: [Wiki](https://github.com/your-username/replyguy-ai/wiki)
+- **Community**: [Discussions](https://github.com/your-username/replyguy-ai/discussions)
 
 ## License
 
