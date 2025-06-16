@@ -1654,7 +1654,7 @@ class RedditReplyAI {
    */
   private extractCommentChain(commentElement: Element): RedditPost {
     const comments: string[] = [];
-    let currentElement = commentElement;
+    let currentElement: Element | null = commentElement;
     
     // Walk up the comment tree to collect the conversation
     while (currentElement) {
@@ -1664,10 +1664,14 @@ class RedditReplyAI {
       }
       
       // Find parent comment
-      currentElement = currentElement.parentElement?.closest('[data-testid^="comment"]') ||
-                      currentElement.parentElement?.closest('.Comment') ||
-                      currentElement.parentElement?.closest('[thing-id]') ||
-                      null;
+      const parentElement = currentElement.parentElement;
+      if (parentElement) {
+        currentElement = parentElement.closest('[data-testid^="comment"]') ||
+                        parentElement.closest('.Comment') ||
+                        parentElement.closest('[thing-id]');
+      } else {
+        currentElement = null;
+      }
     }
     
     // Get the original post as well
@@ -1918,22 +1922,6 @@ class RedditReplyAI {
       this.logger.error('Failed to generate reply', { error: (error as Error).message });
       alert('Failed to generate reply. Please check your API key in the extension settings.');
     }
-  }
-
-  /**
-   * Insert generated reply into textbox
-   */
-  private insertReplyIntoTextbox(textbox: Element, content: string): void {
-    if (textbox.tagName.toLowerCase() === 'textarea') {
-      (textbox as HTMLTextAreaElement).value = content;
-      textbox.dispatchEvent(new Event('input', { bubbles: true }));
-    } else if (textbox.hasAttribute('contenteditable')) {
-      textbox.textContent = content;
-      textbox.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    
-    // Focus the textbox
-    (textbox as HTMLElement).focus();
   }
 
   /**
