@@ -42,9 +42,9 @@ class RedditReplyAI {
         return;
       }
 
-      // Inject UI after a short delay to ensure page is fully loaded
+      // Inject buttons into posts and comments
       setTimeout(() => {
-        this.injectUI();
+        this.injectReplyButtons();
         this.setupObservers();
       }, 1000);
 
@@ -64,32 +64,247 @@ class RedditReplyAI {
   }
 
   /**
-   * Inject the reply generator UI into the page
+   * Inject ReplyGuy.AI buttons into Reddit posts and comments
    */
-  private injectUI(): void {
+  private injectReplyButtons(): void {
     try {
-      if (this.isInjected) return;
+      // Find all posts and comments on the page
+      const posts = this.findPosts();
+      const comments = this.findComments();
 
-      this.logger.debug('Injecting reply generator UI');
+      posts.forEach(post => this.addReplyButton(post, 'post'));
+      comments.forEach(comment => this.addReplyButton(comment, 'comment'));
 
-      // Find the best location to inject the UI
-      const targetElement = this.findInjectionTarget();
-      if (!targetElement) {
-        this.logger.warn('Could not find suitable injection target');
+      this.logger.info('Injected ReplyGuy.AI buttons', { posts: posts.length, comments: comments.length });
+      
+    } catch (error) {
+      this.errorHandler.handle(error as Error, 'Button injection');
+    }
+  }
+
+  /**
+   * Find all posts on the current Reddit page
+   */
+  private findPosts(): Element[] {
+    const postSelectors = [
+      '[data-testid="post-container"]', // New Reddit
+      '.Post', // New Reddit alternative
+      '.thing.link', // Old Reddit
+      '[data-click-id="body"]', // New Reddit posts
+      '.entry' // Old Reddit
+    ];
+
+    const posts: Element[] = [];
+    postSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        // Avoid duplicates
+        if (!posts.includes(el)) {
+          posts.push(el);
+        }
+      });
+    });
+
+    return posts;
+  }
+
+  /**
+   * Find all comments on the current Reddit page
+   */
+  private findComments(): Element[] {
+    const commentSelectors = [
+      '[data-testid="comment"]', // New Reddit
+      '.Comment', // New Reddit alternative
+      '.thing.comment', // Old Reddit
+      '[data-type="comment"]' // Alternative
+    ];
+
+    const comments: Element[] = [];
+    commentSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        // Avoid duplicates
+        if (!comments.includes(el)) {
+          comments.push(el);
+        }
+      });
+    });
+
+    return comments;
+  }
+
+  /**
+   * Add ReplyGuy.AI button to a post or comment
+   */
+  private addReplyButton(element: Element, type: 'post' | 'comment'): void {
+    // Check if button already exists
+    const existingButton = element.querySelector('.replyguy-ai-button');
+    if (existingButton) {
+      return;
+    }
+
+    // Find the action bar (where Share, Save buttons are)
+    const actionBar = this.findActionBar(element);
+    if (!actionBar) {
+      return;
+    }
+
+    // Create the ReplyGuy.AI button
+    const button = this.createReplyButton(element, type);
+    
+    // Insert button before the "..." menu or at the end
+    const moreMenu = actionBar.querySelector('[aria-label="more options"]') || 
+                     actionBar.querySelector('.icon-menu') ||
+                     actionBar.querySelector('[data-testid="post-menu-trigger"]');
+    
+    if (moreMenu) {
+      actionBar.insertBefore(button, moreMenu);
+    } else {
+      actionBar.appendChild(button);
+    }
+  }
+
+  /**
+   * Find the action bar within a post or comment
+   */
+  private findActionBar(element: Element): Element | null {
+    const actionBarSelectors = [
+      '[data-testid="post-engagement-bar"]', // New Reddit posts
+      '[data-testid="comment-action-bar"]', // New Reddit comments
+      '.flat-list.buttons', // Old Reddit
+      '.entry .buttons', // Old Reddit
+      '.Comment__toolbar', // New Reddit comment toolbar
+      '.Post__toolbar' // New Reddit post toolbar
+    ];
+
+    for (const selector of actionBarSelectors) {
+      const actionBar = element.querySelector(selector);
+      if (actionBar) {
+        return actionBar;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Create a ReplyGuy.AI button element
+   */
+  private createReplyButton(element: Element, type: 'post' | 'comment'): HTMLElement {
+    const button = document.createElement('button');
+    button.className = 'replyguy-ai-button';
+    button.setAttribute('data-type', type);
+    button.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: none;
+      border: none;
+      color: #878A8C;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 16px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background-color 0.1s ease;
+      margin-right: 8px;
+    `;
+
+    // Add hover effect
+    button.addEventListener('mouseenter', () => {
+      button.style.backgroundColor = '#F6F7F8';
+    });
+    button.addEventListener('mouseleave', () => {
+      button.style.backgroundColor = 'transparent';
+    });
+
+    // Create icon (AI brain icon)
+    const icon = document.createElement('span');
+    icon.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 2a6 6 0 0 0-6 6c0 1.5.5 2.9 1.3 4L2 13.5l1.5-1.3C4.9 13.5 6.4 14 8 14s3.1-.5 4.2-1.8L13.5 13.5l-1.3-1.5A6 6 0 0 0 8 2zm0 1a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5zm-2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM8 9c-.5 0-1 .2-1.4.6-.4.4-.6.9-.6 1.4h4c0-.5-.2-1-.6-1.4C9 9.2 8.5 9 8 9z"/>
+      </svg>
+    `;
+    icon.style.cssText = 'display: inline-flex; align-items: center;';
+
+    // Create text
+    const text = document.createElement('span');
+    text.textContent = 'Use ReplyGuy.AI';
+
+    button.appendChild(icon);
+    button.appendChild(text);
+
+    // Add click handler
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.handleReplyButtonClick(element, type);
+    });
+
+    return button;
+  }
+
+  /**
+   * Handle click on ReplyGuy.AI button
+   */
+  private handleReplyButtonClick(element: Element, type: 'post' | 'comment'): void {
+    try {
+      // Extract content from the post or comment
+      this.currentPost = this.extractor.extractCurrentContent();
+      
+      if (!this.currentPost) {
+        this.logger.warn('Could not extract content from element');
         return;
       }
 
-      // Create UI container
-      this.uiContainer = this.createUIContainer();
+      // Show the ReplyGuy.AI popup
+      this.showReplyPopup(element);
       
-      // Insert before the target element
-      targetElement.parentNode?.insertBefore(this.uiContainer, targetElement);
-
-      this.isInjected = true;
-      this.logger.info('UI injected successfully');
-
     } catch (error) {
-      this.errorHandler.handle(error as Error, 'UI injection');
+      this.errorHandler.handle(error as Error, 'Reply button click');
+    }
+  }
+
+  /**
+   * Show the ReplyGuy.AI popup for generating replies
+   */
+  private showReplyPopup(element: Element): void {
+    // Remove any existing popup
+    const existingPopup = document.querySelector('.replyguy-ai-popup');
+    if (existingPopup) {
+      existingPopup.remove();
+    }
+
+    // Create popup container
+    this.uiContainer = this.createUIContainer();
+    this.uiContainer.classList.add('replyguy-ai-popup');
+    document.body.appendChild(this.uiContainer);
+
+    // Position popup near the clicked element
+    const rect = element.getBoundingClientRect();
+    this.uiContainer.style.position = 'fixed';
+    this.uiContainer.style.top = `${Math.min(rect.bottom + 10, window.innerHeight - 500)}px`;
+    this.uiContainer.style.left = `${Math.min(rect.left, window.innerWidth - 400)}px`;
+    this.uiContainer.style.zIndex = '10000';
+    this.uiContainer.style.maxHeight = '80vh';
+    this.uiContainer.style.overflow = 'auto';
+
+    // Add close button functionality
+    const closeButton = this.uiContainer.querySelector('.rai-close') as HTMLElement;
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        this.uiContainer?.remove();
+        this.uiContainer = null;
+      });
+    }
+
+    // Show step 1 (content preview)
+    this.showStep(1);
+    
+    // Auto-detect content if current post is available
+    if (this.currentPost) {
+      this.showContentPreview(this.currentPost);
     }
   }
 
@@ -941,29 +1156,41 @@ class RedditReplyAI {
    * Setup observers for dynamic content
    */
   private setupObservers(): void {
-    // Re-inject UI if page changes dynamically
+    // Watch for new posts and comments being added dynamically
     const observer = new MutationObserver((mutations) => {
       let shouldReinject = false;
-
-      mutations.forEach(mutation => {
-        if (mutation.type === 'childList') {
-          // Check if our UI was removed
-          if (!document.contains(this.uiContainer)) {
-            shouldReinject = true;
-          }
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              // Check if this is a new post or comment
+              if (element.matches('[data-testid="post-container"], [data-testid="comment"], .thing, .Post, .Comment')) {
+                shouldReinject = true;
+              }
+              // Also check if any children are posts or comments
+              if (element.querySelector('[data-testid="post-container"], [data-testid="comment"], .thing, .Post, .Comment')) {
+                shouldReinject = true;
+              }
+            }
+          });
         }
       });
-
+      
       if (shouldReinject) {
-        this.isInjected = false;
-        setTimeout(() => this.injectUI(), 500);
+        // Re-inject buttons after a small delay to ensure content is ready
+        setTimeout(() => this.injectReplyButtons(), 500);
       }
     });
 
+    // Observe the entire document for changes
     observer.observe(document.body, {
       childList: true,
       subtree: true
     });
+
+    this.logger.debug('DOM observers setup complete');
   }
 
   /**
