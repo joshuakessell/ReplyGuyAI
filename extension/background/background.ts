@@ -52,7 +52,7 @@ class BackgroundService {
           // Open welcome onboarding page on first install
           try {
             const onboardingUrl = chrome.runtime.getURL('onboarding.html');
-            this.logger.info('Attempting to open onboarding URL:', onboardingUrl);
+            this.logger.info('Attempting to open onboarding URL', { url: onboardingUrl });
             
             await chrome.tabs.create({
               url: onboardingUrl
