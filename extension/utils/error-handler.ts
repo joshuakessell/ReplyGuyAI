@@ -283,7 +283,8 @@ export class ErrorHandler {
         });
       }
     } catch (error) {
-      this.logger.warn('Failed to show user notification', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn('Failed to show user notification', { error: errorMessage });
     }
   }
 }
