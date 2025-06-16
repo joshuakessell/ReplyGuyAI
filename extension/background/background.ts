@@ -152,6 +152,11 @@ class BackgroundService {
           sendResponse({ success: true, data: reply });
           break;
           
+        case 'TEST_API_KEY':
+          const testResult = await this.handleTestApiKey(request.apiKey);
+          sendResponse(testResult);
+          break;
+          
         case 'GET_STORED_SETTINGS':
           const settings = await this.storageService.getSettings();
           sendResponse({ success: true, data: settings });

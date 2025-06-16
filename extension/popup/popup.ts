@@ -123,20 +123,27 @@ class PopupManager {
         return;
       }
 
-      // Test the API key with a simple request
-      const response = await fetch('https://api.openai.com/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${apiKeyInput.value}`,
-          'Content-Type': 'application/json'
-        }
+      const apiKey = apiKeyInput.value.trim();
+      
+      // Validate API key format
+      if (!apiKey.startsWith('sk-') || apiKey.length < 40) {
+        this.showTestLoading(false);
+        this.showNotification('Invalid API key format. Must start with "sk-"', 'error');
+        return;
+      }
+
+      // Test the API key via background script
+      const response = await chrome.runtime.sendMessage({
+        type: 'TEST_API_KEY',
+        apiKey: apiKey
       });
 
       this.showTestLoading(false);
 
-      if (response.ok) {
+      if (response && response.success) {
         this.showNotification('API key is valid and working!', 'success');
       } else {
-        this.showNotification('API key is invalid or has no access', 'error');
+        this.showNotification(response?.error || 'API key is invalid or has no access', 'error');
       }
       
     } catch (error) {
@@ -150,18 +157,18 @@ class PopupManager {
    * Show/hide loading animation for test button
    */
   private showTestLoading(loading: boolean): void {
-    const textElement = document.getElementById('test-api-text');
-    const loadingElement = document.getElementById('test-api-loading');
+    const textElement = document.getElementById('test-api-text') as HTMLElement;
+    const loadingElement = document.getElementById('test-api-loading') as HTMLElement;
     const button = document.getElementById('test-api-key') as HTMLButtonElement;
 
     if (textElement && loadingElement && button) {
       if (loading) {
-        textElement.classList.add('hidden');
-        loadingElement.classList.remove('hidden');
+        textElement.style.display = 'none';
+        loadingElement.style.display = 'inline-block';
         button.disabled = true;
       } else {
-        textElement.classList.remove('hidden');
-        loadingElement.classList.add('hidden');
+        textElement.style.display = 'inline';
+        loadingElement.style.display = 'none';
         button.disabled = false;
       }
     }
@@ -171,18 +178,18 @@ class PopupManager {
    * Show/hide loading animation for save button
    */
   private showSaveLoading(loading: boolean): void {
-    const textElement = document.getElementById('save-text');
-    const loadingElement = document.getElementById('save-loading');
+    const textElement = document.getElementById('save-text') as HTMLElement;
+    const loadingElement = document.getElementById('save-loading') as HTMLElement;
     const button = document.getElementById('save-settings') as HTMLButtonElement;
 
     if (textElement && loadingElement && button) {
       if (loading) {
-        textElement.classList.add('hidden');
-        loadingElement.classList.remove('hidden');
+        textElement.style.display = 'none';
+        loadingElement.style.display = 'inline-block';
         button.disabled = true;
       } else {
-        textElement.classList.remove('hidden');
-        loadingElement.classList.add('hidden');
+        textElement.style.display = 'inline';
+        loadingElement.style.display = 'none';
         button.disabled = false;
       }
     }
