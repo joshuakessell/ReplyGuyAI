@@ -42,9 +42,9 @@ class RedditReplyAI {
         return;
       }
 
-      // Inject buttons into posts and comments
+      // Setup hover-based interface for reply textboxes
       setTimeout(() => {
-        this.injectReplyButtons();
+        this.setupHoverInterface();
         this.setupObservers();
       }, 1000);
 
@@ -64,22 +64,380 @@ class RedditReplyAI {
   }
 
   /**
-   * Inject ReplyGuy.AI buttons into Reddit posts and comments
+   * Setup hover-based interface for reply textboxes
    */
-  private injectReplyButtons(): void {
+  private setupHoverInterface(): void {
     try {
-      // Find all posts and comments on the page
-      const posts = this.findPosts();
-      const comments = this.findComments();
-
-      posts.forEach(post => this.addReplyButton(post, 'post'));
-      comments.forEach(comment => this.addReplyButton(comment, 'comment'));
-
-      this.logger.info('Injected ReplyGuy.AI buttons', { posts: posts.length, comments: comments.length });
+      // Find all reply textboxes on the page
+      const textboxes = this.findReplyTextboxes();
+      
+      textboxes.forEach(textbox => this.attachHoverEvents(textbox));
+      
+      this.logger.info('Setup hover interface for textboxes', { count: textboxes.length });
       
     } catch (error) {
-      this.errorHandler.handle(error as Error, 'Button injection');
+      this.errorHandler.handle(error as Error, 'Hover interface setup');
     }
+  }
+
+  /**
+   * Find all reply textboxes on Reddit
+   */
+  private findReplyTextboxes(): Element[] {
+    const textboxSelectors = [
+      '[data-testid="comment-submission-form-richtext"]', // New Reddit comment boxes
+      'textarea[placeholder*="comment"]', // General comment textareas
+      'textarea[placeholder*="reply"]', // Reply textareas
+      '.usertext-edit textarea', // Old Reddit
+      '[contenteditable="true"][data-testid*="comment"]', // New Reddit rich text
+      '.public-DraftEditor-content', // Rich text editors
+      'div[role="textbox"]' // Contenteditable divs
+    ];
+
+    const textboxes: Element[] = [];
+    textboxSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        // Avoid duplicates and ensure it's visible
+        if (!textboxes.includes(el) && this.isElementVisible(el)) {
+          textboxes.push(el);
+        }
+      });
+    });
+
+    return textboxes;
+  }
+
+  /**
+   * Check if element is visible
+   */
+  private isElementVisible(element: Element): boolean {
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  /**
+   * Attach hover events to a textbox
+   */
+  private attachHoverEvents(textbox: Element): void {
+    // Skip if already has hover events
+    if (textbox.hasAttribute('data-replyguy-hover')) {
+      return;
+    }
+    
+    textbox.setAttribute('data-replyguy-hover', 'true');
+    
+    let hoverTimeout: NodeJS.Timeout;
+    let promptElement: HTMLElement | null = null;
+    
+    const showPrompt = () => {
+      if (promptElement) return; // Already showing
+      
+      promptElement = this.createHoverPrompt(textbox);
+      textbox.parentElement?.appendChild(promptElement);
+      
+      // Dim the textbox
+      (textbox as HTMLElement).style.filter = 'brightness(0.7)';
+      (textbox as HTMLElement).style.transition = 'filter 0.2s ease';
+    };
+    
+    const hidePrompt = () => {
+      if (promptElement) {
+        promptElement.remove();
+        promptElement = null;
+      }
+      
+      // Restore textbox brightness
+      (textbox as HTMLElement).style.filter = '';
+    };
+    
+    // Mouse enter - show prompt after delay
+    textbox.addEventListener('mouseenter', () => {
+      clearTimeout(hoverTimeout);
+      hoverTimeout = setTimeout(showPrompt, 800); // Show after 800ms hover
+    });
+    
+    // Mouse leave - hide prompt
+    textbox.addEventListener('mouseleave', () => {
+      clearTimeout(hoverTimeout);
+      hidePrompt();
+    });
+    
+    // Focus - hide prompt (user is typing)
+    textbox.addEventListener('focus', () => {
+      clearTimeout(hoverTimeout);
+      hidePrompt();
+    });
+  }
+
+  /**
+   * Create hover prompt element
+   */
+  private createHoverPrompt(textbox: Element): HTMLElement {
+    const prompt = document.createElement('div');
+    prompt.className = 'replyguy-hover-prompt';
+    
+    const rect = textbox.getBoundingClientRect();
+    prompt.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 121, 211, 0.95);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0, 121, 211, 0.3);
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      user-select: none;
+      transition: all 0.2s ease;
+    `;
+    
+    prompt.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 2a6 6 0 0 0-6 6c0 1.5.5 2.9 1.3 4L2 13.5l1.5-1.3C4.9 13.5 6.4 14 8 14s3.1-.5 4.2-1.8L13.5 13.5l-1.3-1.5A6 6 0 0 0 8 2zm0 1a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5zm-2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM8 9c-.5 0-1 .2-1.4.6-.4.4-.6.9-.6 1.4h4c0-.5-.2-1-.6-1.4C9 9.2 8.5 9 8 9z"/>
+        </svg>
+        <span>Use ReplyGuy.AI?</span>
+      </div>
+    `;
+    
+    // Add hover effects
+    prompt.addEventListener('mouseenter', () => {
+      prompt.style.background = 'rgba(0, 121, 211, 1)';
+      prompt.style.transform = 'translate(-50%, -50%) scale(1.05)';
+    });
+    
+    prompt.addEventListener('mouseleave', () => {
+      prompt.style.background = 'rgba(0, 121, 211, 0.95)';
+      prompt.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+    
+    // Click handler
+    prompt.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.showReplyModal(textbox);
+      prompt.remove();
+      (textbox as HTMLElement).style.filter = '';
+    });
+    
+    return prompt;
+  }
+
+  /**
+   * Show reply customization modal
+   */
+  private showReplyModal(textbox: Element): void {
+    // Extract content context from the page
+    this.currentPost = this.extractor.extractCurrentContent();
+    
+    if (!this.currentPost) {
+      this.logger.warn('Could not extract context for reply generation');
+      return;
+    }
+    
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'replyguy-modal-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    `;
+    
+    // Create modal content
+    const modal = this.createCustomizationModal();
+    overlay.appendChild(modal);
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+    
+    // Close on escape key
+    const escapeHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    document.body.appendChild(overlay);
+    
+    // Store reference to textbox for later use
+    (modal as any).targetTextbox = textbox;
+  }
+
+  /**
+   * Create customization modal
+   */
+  private createCustomizationModal(): HTMLElement {
+    const modal = document.createElement('div');
+    modal.className = 'replyguy-modal';
+    modal.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    modal.innerHTML = `
+      <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0 0 8px 0; color: #1a1a1b; font-size: 20px; font-weight: 600;">Generate AI Reply</h2>
+        <p style="margin: 0; color: #7c7c83; font-size: 14px;">Customize your reply settings below</p>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; color: #1a1a1b; font-weight: 500;">Reply Length</label>
+        <select id="modal-length" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+          <option value="small">Short (~25 words)</option>
+          <option value="medium" selected>Medium (~75 words)</option>
+          <option value="large">Long (~150 words)</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; color: #1a1a1b; font-weight: 500;">Tone</label>
+        <select id="modal-tone" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+          <option value="neutral" selected>Neutral</option>
+          <option value="friendly">Friendly</option>
+          <option value="professional">Professional</option>
+          <option value="casual">Casual</option>
+          <option value="enthusiastic">Enthusiastic</option>
+          <option value="skeptical">Skeptical</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; color: #1a1a1b; font-weight: 500;">Mood</label>
+        <select id="modal-mood" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+          <option value="supportive" selected>Supportive</option>
+          <option value="curious">Curious</option>
+          <option value="helpful">Helpful</option>
+          <option value="thoughtful">Thoughtful</option>
+          <option value="humorous">Humorous</option>
+          <option value="serious">Serious</option>
+        </select>
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button id="modal-cancel" style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; background: white; color: #7c7c83; border-radius: 6px; font-weight: 500; cursor: pointer;">Cancel</button>
+        <button id="modal-generate" style="flex: 2; padding: 12px; border: none; background: #0079d3; color: white; border-radius: 6px; font-weight: 500; cursor: pointer;">
+          <span id="generate-text">Generate Reply</span>
+          <div id="generate-loading" style="display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        </button>
+      </div>
+    `;
+    
+    // Add event listeners
+    const cancelBtn = modal.querySelector('#modal-cancel') as HTMLElement;
+    const generateBtn = modal.querySelector('#modal-generate') as HTMLElement;
+    
+    cancelBtn.addEventListener('click', () => {
+      modal.closest('.replyguy-modal-overlay')?.remove();
+    });
+    
+    generateBtn.addEventListener('click', () => {
+      this.generateReplyFromModal(modal);
+    });
+    
+    return modal;
+  }
+
+  /**
+   * Generate reply from modal settings
+   */
+  private async generateReplyFromModal(modal: HTMLElement): Promise<void> {
+    try {
+      const generateText = modal.querySelector('#generate-text') as HTMLElement;
+      const generateLoading = modal.querySelector('#generate-loading') as HTMLElement;
+      const generateBtn = modal.querySelector('#modal-generate') as HTMLButtonElement;
+      
+      // Show loading
+      generateText.style.display = 'none';
+      generateLoading.style.display = 'block';
+      generateBtn.disabled = true;
+      
+      // Get customization options
+      const lengthSelect = modal.querySelector('#modal-length') as HTMLSelectElement;
+      const toneSelect = modal.querySelector('#modal-tone') as HTMLSelectElement;
+      const moodSelect = modal.querySelector('#modal-mood') as HTMLSelectElement;
+      
+      const customization: CustomizationOptions = {
+        length: lengthSelect.value as any,
+        tone: toneSelect.value,
+        mood: moodSelect.value,
+        direction: 'supportive'
+      };
+      
+      // Generate reply via background script
+      const response = await chrome.runtime.sendMessage({
+        type: 'GENERATE_REPLY',
+        data: {
+          post: this.currentPost,
+          customization
+        }
+      });
+      
+      if (response.success) {
+        this.insertReplyIntoTextbox((modal as any).targetTextbox, response.reply.content);
+        modal.closest('.replyguy-modal-overlay')?.remove();
+      } else {
+        throw new Error(response.error || 'Failed to generate reply');
+      }
+      
+    } catch (error) {
+      // Hide loading
+      const generateText = modal.querySelector('#generate-text') as HTMLElement;
+      const generateLoading = modal.querySelector('#generate-loading') as HTMLElement;
+      const generateBtn = modal.querySelector('#modal-generate') as HTMLButtonElement;
+      
+      generateText.style.display = 'block';
+      generateLoading.style.display = 'none';
+      generateBtn.disabled = false;
+      
+      this.logger.error('Failed to generate reply', { error: (error as Error).message });
+      alert('Failed to generate reply. Please check your API key in the extension settings.');
+    }
+  }
+
+  /**
+   * Insert generated reply into textbox
+   */
+  private insertReplyIntoTextbox(textbox: Element, content: string): void {
+    if (textbox.tagName.toLowerCase() === 'textarea') {
+      (textbox as HTMLTextAreaElement).value = content;
+      textbox.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (textbox.hasAttribute('contenteditable')) {
+      textbox.textContent = content;
+      textbox.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    // Focus the textbox
+    (textbox as HTMLElement).focus();
   }
 
   /**

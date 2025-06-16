@@ -144,11 +144,11 @@ function validateApiKey() {
 /**
  * Validate and save API key to extension storage
  */
-function validateAndSaveApiKey() {
+async function validateAndSaveApiKey() {
     const apiKeyInput = document.getElementById('apiKey');
-    const statusMessage = document.getElementById('apiStatus');
+    const nextButton = document.getElementById('nextButton');
     
-    if (!apiKeyInput || !statusMessage) return false;
+    if (!apiKeyInput) return false;
     
     const apiKey = apiKeyInput.value.trim();
     
@@ -157,34 +157,84 @@ function validateAndSaveApiKey() {
         return false;
     }
     
-    // Save API key to extension storage
+    // Show loading animation
+    showApiKeyLoading(true);
+    
     try {
-        chrome.storage.sync.set({
-            'replyGuyAI_settings': {
-                openaiApiKey: apiKey,
-                saveHistory: true,
-                darkMode: false,
-                autoDetectContext: true,
-                defaultCustomization: {
-                    length: 'medium',
-                    mood: 'supportive',
-                    tone: 'neutral'
+        // Test the API key with OpenAI
+        const response = await fetch('https://api.openai.com/v1/models', {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            showApiKeyLoading(false);
+            showStatus('API key is invalid or has no access. Please check your key and try again.', 'error');
+            return false;
+        }
+        
+        // Save API key to extension storage if validation passes
+        await new Promise((resolve, reject) => {
+            chrome.storage.sync.set({
+                'replyGuyAI_settings': {
+                    openaiApiKey: apiKey,
+                    saveHistory: true,
+                    darkMode: false,
+                    autoDetectContext: true,
+                    defaultCustomization: {
+                        length: 'medium',
+                        mood: 'supportive',
+                        tone: 'neutral'
+                    }
                 }
-            }
-        }, () => {
-            if (chrome.runtime.lastError) {
-                showStatus('Failed to save API key. Please try again.', 'error');
-                return false;
-            } else {
-                showStatus('API key saved successfully!', 'success');
-                
-                // Mark onboarding as complete
-                chrome.storage.sync.set({
-                    'replyGuyAI_onboardingComplete': true
-                });
-                
-                return true;
-            }
+            }, () => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve();
+                }
+            });
+        });
+        
+        showApiKeyLoading(false);
+        showStatus('API key validated and saved successfully!', 'success');
+        
+        // Mark onboarding as complete
+        chrome.storage.sync.set({
+            'replyGuyAI_onboardingComplete': true
+        });
+        
+        return true;
+        
+    } catch (error) {
+        showApiKeyLoading(false);
+        showStatus('Failed to validate API key. Please check your internet connection and try again.', 'error');
+        return false;
+    }
+}
+
+/**
+ * Show/hide loading animation for API key validation
+ */
+function showApiKeyLoading(loading) {
+    const nextButton = document.getElementById('nextButton');
+    const statusEl = document.querySelector('.status');
+    
+    if (loading) {
+        nextButton.disabled = true;
+        nextButton.innerHTML = '<div style="display: inline-block; width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid #0079d3; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>Validating API Key...';
+        if (statusEl) {
+            statusEl.textContent = 'Testing your API key with OpenAI...';
+            statusEl.className = 'status info';
+            statusEl.style.display = 'block';
+        }
+    } else {
+        nextButton.disabled = false;
+        nextButton.innerHTML = 'Next';
+    }
+}
         });
         
         return true;

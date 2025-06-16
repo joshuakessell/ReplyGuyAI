@@ -29,7 +29,7 @@ class PopupManager {
       await this.loadSettings();
       this.setupEventListeners();
       
-      this.logger.info('Popup interface initialized successfully');
+      this.logger.info('Popup initialized successfully');
     } catch (error) {
       this.errorHandler.handle(error as Error, 'PopupManager.initialize');
     }
@@ -43,7 +43,7 @@ class PopupManager {
       const settings = await this.storageService.getSettings();
       this.populateSettingsForm(settings);
     } catch (error) {
-      this.logger.error('Failed to load settings', {}, error as Error);
+      this.errorHandler.handle(error as Error, 'PopupManager.loadSettings');
     }
   }
 
@@ -51,21 +51,12 @@ class PopupManager {
    * Populate settings form with current values
    */
   private populateSettingsForm(settings: ExtensionSettings): void {
-    // Update form fields with current settings
-    const apiKeyInput = document.getElementById('apiKey') as HTMLInputElement;
-    const saveHistoryCheckbox = document.getElementById('saveHistory') as HTMLInputElement;
-    const darkModeCheckbox = document.getElementById('darkMode') as HTMLInputElement;
+    const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
     
-    if (apiKeyInput) {
-      apiKeyInput.value = settings.openaiApiKey ? '••••••••' : '';
-    }
-    
-    if (saveHistoryCheckbox) {
-      saveHistoryCheckbox.checked = settings.saveHistory;
-    }
-    
-    if (darkModeCheckbox) {
-      darkModeCheckbox.checked = settings.darkMode;
+    if (apiKeyInput && settings.openaiApiKey) {
+      // Show censored version of API key for security
+      const censoredKey = 'sk-...' + '•'.repeat(20) + settings.openaiApiKey.slice(-4);
+      apiKeyInput.value = censoredKey;
     }
   }
 
@@ -113,19 +104,6 @@ class PopupManager {
       this.showSaveLoading(false);
       this.errorHandler.handle(error as Error, 'PopupManager.saveSettings');
       this.showNotification('Failed to save settings', 'error');
-    }
-  }
-
-  /**
-   * Clear reply history
-   */
-  private async clearHistory(): Promise<void> {
-    try {
-      await this.storageService.clearHistory();
-      this.showNotification('History cleared successfully!', 'success');
-    } catch (error) {
-      this.errorHandler.handle(error as Error, 'PopupManager.clearHistory');
-      this.showNotification('Failed to clear history', 'error');
     }
   }
 
