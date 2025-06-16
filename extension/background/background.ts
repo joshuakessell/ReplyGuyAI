@@ -49,9 +49,10 @@ class BackgroundService {
           await this.storageService.initialize();
           this.logger.info('Extension storage initialized on first install');
           
-          // Show welcome notification instead of opening non-existent options page
-          chrome.action.setBadgeText({ text: 'NEW' });
-          chrome.action.setBadgeBackgroundColor({ color: '#FF4500' });
+          // Open welcome onboarding page on first install
+          chrome.tabs.create({
+            url: chrome.runtime.getURL('onboarding.html')
+          });
         }
         
         if (details.reason === 'update') {

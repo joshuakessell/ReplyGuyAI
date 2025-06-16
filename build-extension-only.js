@@ -84,6 +84,15 @@ try {
   console.log('popup.html not found, skipping...');
 }
 
+// Copy onboarding files
+try {
+  copyFileSync(join(extensionDir, 'onboarding/onboarding.html'), join(distDir, 'onboarding.html'));
+  copyFileSync(join(extensionDir, 'onboarding/onboarding.js'), join(distDir, 'onboarding.js'));
+  console.log('Copied onboarding files');
+} catch (error) {
+  console.log('onboarding files not found, skipping...');
+}
+
 // Copy manifest
 try {
   copyFileSync('manifest.json', join(distDir, 'manifest.json'));

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ReplyGuy.AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo svg {
+            width: 50px;
+            height: 50px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .step {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1a1a1b;
+        }
+
+        .step p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .api-key-section {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .api-key-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1b;
+        }
+
+        .api-key-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .api-key-section input:focus {
+            outline: none;
+            border-color: #ff4500;
+        }
+
+        .api-instructions {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .api-instructions a {
+            color: #ff4500;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .api-instructions a:hover {
+            text-decoration: underline;
+        }
+
+        .walkthrough-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .walkthrough-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .walkthrough-item .number {
+            background: #ff4500;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-weight: 600;
+        }
+
+        .walkthrough-item h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1a1a1b;
+        }
+
+        .walkthrough-item p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+
+        .button {
+            background: #ff4500;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+
+        .button:hover {
+            background: #e03d00;
+            transform: translateY(-2px);
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button.secondary {
+            background: #6c757d;
+        }
+
+        .button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4500, #ff6b35);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-top: 1px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+
+        .step-indicator {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-100%); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .step.slide-out {
+            animation: slideOut 0.3s ease-in-out;
+        }
+
+        .step.slide-in {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        .reddit-link {
+            display: inline-block;
+            background: #ff4500;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 10px;
+            transition: all 0.3s;
+        }
+
+        .reddit-link:hover {
+            background: #e03d00;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .footer {
+                padding: 15px 20px;
+            }
+
+            .walkthrough-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="64" cy="64" r="50" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="3"/>
+                    <path d="M40 45 C36 45 33 48 33 52 L33 72 C33 76 36 79 40 79 L48 79 L54 85 L60 79 L88 79 C92 79 95 76 95 72 L95 52 C95 48 92 45 88 45 Z" fill="white" opacity="0.9"/>
+                    <circle cx="50" cy="59" r="3" fill="#4F46E5"/>
+                    <circle cx="64" cy="59" r="3" fill="#7C3AED"/>
+                    <circle cx="78" cy="59" r="3" fill="#4F46E5"/>
+                </svg>
+            </div>
+            <h1>ReplyGuy.AI</h1>
+            <p>Welcome to intelligent Reddit replies</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 25%;"></div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Welcome -->
+            <div class="step active" id="step1">
+                <h2>Thank you for installing ReplyGuy.AI!</h2>
+                <p>We're excited to help you create intelligent, contextual replies on Reddit with the power of AI. This quick setup will get you started in just a few minutes.</p>
+                <p>Let's configure your extension for the best experience possible.</p>
+            </div>
+
+            <!-- Step 2: API Key Setup -->
+            <div class="step" id="step2">
+                <h2>OpenAI API Key Required</h2>
+                <p>To generate AI-powered replies, you'll need an OpenAI API key. This ensures your data stays secure and gives you access to the latest AI models.</p>
+                
+                <div class="api-key-section">
+                    <label for="apiKey">Enter your OpenAI API Key:</label>
+                    <input type="password" id="apiKey" placeholder="sk-..." />
+                    <div class="api-instructions">
+                        <strong>How to get your API key:</strong><br>
+                        1. Visit <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a><br>
+                        2. Sign in or create an account<br>
+                        3. Click "Create new secret key"<br>
+                        4. Copy and paste the key above<br><br>
+                        <em>Your API key is stored locally and never shared with anyone.</em>
+                    </div>
+                </div>
+
+                <div class="status-message" id="apiStatus"></div>
+            </div>
+
+            <!-- Step 3: How It Works -->
+            <div class="step" id="step3">
+                <h2>How ReplyGuy.AI Works</h2>
+                <p>Your extension is now configured! Here's how to use it on Reddit:</p>
+
+                <div class="walkthrough-grid">
+                    <div class="walkthrough-item">
+                        <div class="number">1</div>
+                        <h3>Visit Reddit</h3>
+                        <p>Navigate to any Reddit post or comment thread</p>
+                    </div>
+                    <div class="walkthrough-item">
+                        <div class="number">2</div>
+                        <h3>Find the AI Button</h3>
+                        <p>Look for the ReplyGuy.AI interface that appears on the page</p>
+                    </div>
+                    <div class="walkthrough-item">
+                        <div class="number">3</div>
+                        <h3>Customize Your Reply</h3>
+                        <p>Choose tone, length, and mood for your response</p>
+                    </div>
+                    <div class="walkthrough-item">
+                        <div class="number">4</div>
+                        <h3>Generate & Use</h3>
+                        <p>Click generate, review the reply, and copy it to use</p>
+                    </div>
+                </div>
+
+                <p>Ready to try it out? Head to Reddit and start creating amazing replies!</p>
+
+                <a href="https://reddit.com" target="_blank" class="reddit-link">Visit Reddit.com</a>
+                <button class="button secondary" onclick="window.close()">Close Setup</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="step-indicator">
+                <span id="stepCounter">Step 1 of 3</span>
+            </div>
+            <div>
+                <button class="button" id="nextButton" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="onboarding.js"></script>
+</body>
+</html>
