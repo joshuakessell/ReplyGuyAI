@@ -125,6 +125,7 @@ Changelog:
   * Updated project root manifest.json to use "ReplyGuy.AI" name
   * Fixed all extension source files to use consistent "ReplyGuy.AI" branding
   * Updated GitHub URLs throughout extension popup and background files
+  * Fixed client/index.html template with correct "ReplyGuy.AI" branding in title and meta tags
   * Rebuilt extension with correct naming for Chrome Web Store readiness
 ```
 
