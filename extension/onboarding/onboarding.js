@@ -18,6 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
  * Setup event listeners for the onboarding flow
  */
 function setupEventListeners() {
+    // Next button navigation
+    const nextButton = document.getElementById('nextButton');
+    if (nextButton) {
+        nextButton.addEventListener('click', nextStep);
+    }
+    
+    // Close button
+    const closeButton = document.getElementById('closeButton');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => window.close());
+    }
+    
     // API key input validation
     const apiKeyInput = document.getElementById('apiKey');
     if (apiKeyInput) {
