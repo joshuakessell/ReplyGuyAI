@@ -16,16 +16,15 @@
   "content_scripts": [
     {
       "matches": ["*://*.reddit.com/*"],
-      "js": ["dist/content-script.js"],
-      "css": ["dist/content-script.css"],
+      "js": ["content-script.js"],
       "run_at": "document_end"
     }
   ],
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_title": "ReplyGuy.AI",
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -42,7 +41,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["dist/*", "icons/*"],
+      "resources": ["*.js", "*.css", "icons/*"],
       "matches": ["*://*.reddit.com/*"]
     }
   ],
