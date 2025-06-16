@@ -41,8 +41,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["*.js", "*.css", "icons/*"],
-      "matches": ["*://*.reddit.com/*"]
+      "resources": ["*.js", "*.css", "icons/*", "onboarding.html", "onboarding.js"],
+      "matches": ["<all_urls>"]
     }
   ],
   "content_security_policy": {

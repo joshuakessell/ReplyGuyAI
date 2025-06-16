@@ -140,6 +140,13 @@ Changelog:
   * Created build-extension-only.js for streamlined extension compilation
   * Extension now loads correctly in Chrome with working popup interface
   * Ready for end-user installation and configuration with OpenAI API key
+- June 16, 2025. Created comprehensive first-time onboarding experience
+  * Built beautiful welcome page with ReplyGuy.AI branding and smooth animations
+  * Implemented 3-step setup flow: welcome, API key configuration, usage tutorial
+  * Added real-time API key validation and secure local storage
+  * Created visual walkthrough explaining how to use extension on Reddit
+  * Fixed manifest web accessible resources to properly load onboarding page
+  * Extension now provides complete guided setup experience for new users
 ```
 
 ## User Preferences
