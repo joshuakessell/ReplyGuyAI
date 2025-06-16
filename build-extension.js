@@ -11,7 +11,7 @@ const extensionDir = 'extension';
 // First run the regular build to ensure dist/public exists
 console.log('Running web build first...');
 try {
-  execSync('vite build', { stdio: 'inherit' });
+  execSync('npx vite build', { stdio: 'inherit' });
 } catch (viteError) {
   console.log('Vite build completed, continuing with extension build...');
 }
@@ -24,34 +24,46 @@ if (!existsSync(distDir)) {
 console.log('Building Chrome Extension...');
 
 // Build background script
-await build({
-  entryPoints: [join(extensionDir, 'background/background.ts')],
-  bundle: true,
-  outfile: join(distDir, 'background.js'),
-  format: 'esm',
-  target: 'chrome96',
-  platform: 'browser',
-  define: {
-    'process.env.NODE_ENV': '"production"'
-  },
-  external: ['chrome'],
-  sourcemap: true
-}).catch(() => process.exit(1));
+try {
+  await build({
+    entryPoints: [join(extensionDir, 'background/background.ts')],
+    bundle: true,
+    outfile: join(distDir, 'background.js'),
+    format: 'esm',
+    target: 'chrome96',
+    platform: 'browser',
+    define: {
+      'process.env.NODE_ENV': '"production"'
+    },
+    external: ['chrome'],
+    sourcemap: true
+  });
+  console.log('Built background script');
+} catch (error) {
+  console.error('Failed to build background script:', error);
+  process.exit(1);
+}
 
 // Build content script
-await build({
-  entryPoints: [join(extensionDir, 'content/content-script.ts')],
-  bundle: true,
-  outfile: join(distDir, 'content-script.js'),
-  format: 'iife',
-  target: 'chrome96',
-  platform: 'browser',
-  define: {
-    'process.env.NODE_ENV': '"production"'
-  },
-  external: ['chrome'],
-  sourcemap: true
-}).catch(() => process.exit(1));
+try {
+  await build({
+    entryPoints: [join(extensionDir, 'content/content-script.ts')],
+    bundle: true,
+    outfile: join(distDir, 'content-script.js'),
+    format: 'iife',
+    target: 'chrome96',
+    platform: 'browser',
+    define: {
+      'process.env.NODE_ENV': '"production"'
+    },
+    external: ['chrome'],
+    sourcemap: true
+  });
+  console.log('Built content script');
+} catch (error) {
+  console.error('Failed to build content script:', error);
+  process.exit(1);
+}
 
 // Build popup script (if exists)
 try {
@@ -68,8 +80,9 @@ try {
     external: ['chrome'],
     sourcemap: true
   });
+  console.log('Built popup script');
 } catch (error) {
-  console.log('Popup script not found, skipping...');
+  console.log('Popup script build failed, skipping...');
 }
 
 // Copy static files

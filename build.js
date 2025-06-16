@@ -7,11 +7,11 @@ console.log('🔨 Building ReplyGuy.AI Extension...\n');
 try {
   // Step 1: Build web application
   console.log('📦 Building web application...');
-  execSync('vite build', { stdio: 'inherit' });
+  execSync('npx vite build', { stdio: 'inherit' });
   
   // Step 2: Build server
   console.log('🖥️  Building server...');
-  execSync('esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { stdio: 'inherit' });
+  execSync('npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { stdio: 'inherit' });
   
   // Step 3: Build Chrome extension
   console.log('🧩 Building Chrome extension...');
