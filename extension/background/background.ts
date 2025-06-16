@@ -1,5 +1,5 @@
 /**
- * Background Service Worker for Reddit Reply AI Extension
+ * Background Service Worker for ReplyGuy.AI Extension
  * Handles AI API communication and extension lifecycle events
  */
 

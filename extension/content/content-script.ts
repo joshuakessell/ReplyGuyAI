@@ -1,5 +1,5 @@
 /**
- * Content Script for Reddit Reply AI Extension
+ * Content Script for ReplyGuy.AI Extension
  * Injects reply generator UI into Reddit pages and handles user interactions
  */
 
