@@ -153,7 +153,7 @@ class BackgroundService {
           break;
           
         case 'TEST_API_KEY':
-          const testResult = await this.handleTestApiKey(request.apiKey);
+          const testResult = await this.testApiKey(request.apiKey);
           sendResponse(testResult);
           break;
           
@@ -192,10 +192,7 @@ class BackgroundService {
           sendResponse({ success: true, data: health });
           break;
 
-        case 'TEST_API_KEY':
-          const isValid = await this.aiService.testApiKey(request.data.apiKey);
-          sendResponse({ success: true, data: { valid: isValid } });
-          break;
+
           
         case 'GET_STORAGE_STATS':
           const stats = await this.storageService.getStorageStats();
@@ -213,6 +210,45 @@ class BackgroundService {
     } catch (error) {
       const errorDetails = this.errorHandler.handle(error as Error, `Message handling: ${request.type}`);
       sendResponse({ success: false, error: errorDetails.message });
+    }
+  }
+
+  /**
+   * Test API key validity
+   */
+  private async testApiKey(apiKey: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      this.logger.info('Testing API key');
+      
+      if (!apiKey || !apiKey.trim()) {
+        return { success: false, error: 'API key is required' };
+      }
+
+      // Validate API key format
+      if (!AIService.validateApiKey(apiKey)) {
+        return { success: false, error: 'Invalid API key format. Must start with "sk-"' };
+      }
+
+      // Test the API key with OpenAI
+      const response = await fetch('https://api.openai.com/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        this.logger.info('API key test successful');
+        return { success: true };
+      } else {
+        const errorText = await response.text();
+        this.logger.warn('API key test failed', { status: response.status, error: errorText });
+        return { success: false, error: 'API key is invalid or has no access' };
+      }
+      
+    } catch (error) {
+      this.logger.error('API key test error', { error: (error as Error).message });
+      return { success: false, error: 'Failed to test API key. Please check your internet connection.' };
     }
   }
 
