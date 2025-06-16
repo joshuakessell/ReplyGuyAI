@@ -127,7 +127,7 @@ class RedditReplyAI {
     
     textbox.setAttribute('data-replyguy-hover', 'true');
     
-    let hoverTimeout: NodeJS.Timeout;
+    let hoverTimeout: number;
     let promptElement: HTMLElement | null = null;
     
     const showPrompt = () => {
@@ -388,8 +388,8 @@ class RedditReplyAI {
       
       const customization: CustomizationOptions = {
         length: lengthSelect.value as any,
-        tone: toneSelect.value,
-        mood: moodSelect.value,
+        tone: toneSelect.value as any,
+        mood: moodSelect.value as any,
         direction: 'supportive'
       };
       
@@ -1537,8 +1537,8 @@ class RedditReplyAI {
       });
       
       if (shouldReinject) {
-        // Re-inject buttons after a small delay to ensure content is ready
-        setTimeout(() => this.injectReplyButtons(), 500);
+        // Re-setup hover interface after a small delay to ensure content is ready
+        setTimeout(() => this.setupHoverInterface(), 500);
       }
     });
 

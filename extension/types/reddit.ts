@@ -19,9 +19,9 @@ export interface CustomizationOptions {
   direction: string;
   length: 'small' | 'medium' | 'large' | 'custom';
   customLength?: number;
-  mood: 'witty' | 'supportive' | 'analytical' | 'casual' | 'professional' | 'custom';
+  mood: 'supportive' | 'curious' | 'helpful' | 'thoughtful' | 'humorous' | 'serious' | 'custom';
   customMood?: string;
-  tone: 'formal' | 'informal' | 'neutral';
+  tone: 'neutral' | 'friendly' | 'professional' | 'casual' | 'enthusiastic' | 'skeptical';
 }
 
 export interface AiReply {

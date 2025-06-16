@@ -235,14 +235,6 @@ function showApiKeyLoading(loading) {
         nextButton.innerHTML = 'Next';
     }
 }
-        });
-        
-        return true;
-    } catch (error) {
-        showStatus('Failed to save API key. Please try again.', 'error');
-        return false;
-    }
-}
 
 /**
  * Show status message with animation
