@@ -49,10 +49,9 @@ class BackgroundService {
           await this.storageService.initialize();
           this.logger.info('Extension storage initialized on first install');
           
-          // Open options page on first install
-          chrome.tabs.create({
-            url: chrome.runtime.getURL('popup/options.html')
-          });
+          // Show welcome notification instead of opening non-existent options page
+          chrome.action.setBadgeText({ text: 'NEW' });
+          chrome.action.setBadgeBackgroundColor({ color: '#FF4500' });
         }
         
         if (details.reason === 'update') {
@@ -101,9 +100,8 @@ class BackgroundService {
         }
         
         if (info.menuItemId === 'replyguy-ai-settings') {
-          chrome.tabs.create({
-            url: chrome.runtime.getURL('popup/options.html')
-          });
+          // Open extension popup instead of non-existent options page
+          chrome.action.openPopup();
         }
       } catch (error) {
         this.errorHandler.handle(error as Error, 'Context menu action');

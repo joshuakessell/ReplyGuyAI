@@ -278,7 +278,7 @@ export class ErrorHandler {
       if (actionable) {
         chrome.notifications.onClicked.addListener((notificationId) => {
           if (notificationId === errorDetails.code) {
-            chrome.runtime.openOptionsPage();
+            chrome.action.openPopup();
           }
         });
       }
