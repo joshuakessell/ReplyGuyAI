@@ -118,7 +118,7 @@ Changelog:
 - June 15, 2025. Updated README documentation
   * Changed app name from "Reddit Reply AI" to "ReplyGuy.AI"
   * Fixed installation instructions to use correct build script (npm run build)
-  * Updated repository URLs and references throughout documentation
+  * Updated repository URLs to correct GitHub: https://github.com/joshuakessell/ReplyGuyAI
   * Corrected Chrome extension loading path to dist/public folder
 ```
 

@@ -210,9 +210,9 @@ Enable debug logging by setting the log level in extension popup:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/replyguy-ai/issues)
-- **Documentation**: [Wiki](https://github.com/your-username/replyguy-ai/wiki)
-- **Community**: [Discussions](https://github.com/your-username/replyguy-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/joshuakessell/ReplyGuyAI/issues)
+- **Documentation**: [Wiki](https://github.com/joshuakessell/ReplyGuyAI/wiki)
+- **Community**: [Discussions](https://github.com/joshuakessell/ReplyGuyAI/discussions)
 
 ## License
 
