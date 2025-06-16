@@ -153,13 +153,14 @@ Changelog:
   * Generates extension icons and copies all necessary HTML/JS files
   * Provides unified build command for both web app and Chrome extension
   * Eliminates need for separate build-extension-only.js command
-- June 16, 2025. Implemented Reddit button integration with native UI styling
-  * Added "Use ReplyGuy.AI" buttons to every post and comment on Reddit
-  * Positioned buttons between Share and "..." menu with Reddit-native styling
-  * Includes AI brain icon and hover effects matching Reddit's design
-  * Dynamic content detection handles infinite scroll and new posts/comments
-  * Popup generation interface opens when buttons are clicked
-  * Works across all Reddit layouts (New Reddit, Old Reddit, mobile web)
+- June 16, 2025. Implemented hover-based Reddit interface with API key validation
+  * Replaced button injection with elegant hover-based interface for reply textboxes
+  * "Use ReplyGuy.AI?" prompt appears when hovering over comment/reply boxes for 800ms
+  * Added real-time OpenAI API key validation during onboarding with loading animations
+  * Created modal customization interface with length, tone, and mood options
+  * Textbox dimming effect and seamless integration without UI clutter
+  * Works across all Reddit layouts with comprehensive textbox detection
+  * Enhanced user experience with professional modal design and error handling
 ```
 
 ## User Preferences
