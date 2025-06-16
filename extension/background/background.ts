@@ -60,7 +60,7 @@ class BackgroundService {
             
             this.logger.info('Onboarding tab created successfully');
           } catch (error) {
-            this.logger.error('Failed to open onboarding page:', error);
+            this.logger.error('Failed to open onboarding page', { error: (error as Error).message });
             
             // Fallback: try opening popup instead
             try {
@@ -70,7 +70,7 @@ class BackgroundService {
               });
               this.logger.info('Opened popup as fallback');
             } catch (popupError) {
-              this.logger.error('Failed to open popup fallback:', popupError);
+              this.logger.error('Failed to open popup fallback', { error: (popupError as Error).message });
             }
           }
         }
@@ -90,6 +90,12 @@ class BackgroundService {
    * Set up context menu for Reddit pages
    */
   private setupContextMenus(): void {
+    // Check if chrome.contextMenus is available
+    if (!chrome.contextMenus) {
+      this.logger.warn('Context menus API not available');
+      return;
+    }
+
     chrome.runtime.onInstalled.addListener(async () => {
       try {
         await chrome.contextMenus.create({
@@ -99,35 +105,27 @@ class BackgroundService {
           documentUrlPatterns: ['*://*.reddit.com/*']
         });
 
-        await chrome.contextMenus.create({
-          id: 'replyguy-ai-settings',
-          title: 'ReplyGuy.AI Settings',
-          contexts: ['action']
-        });
-
         this.logger.info('Context menus created');
       } catch (error) {
-        this.errorHandler.handle(error as Error, 'Context menu setup');
+        this.logger.warn('Context menu creation failed', { error: (error as Error).message });
       }
     });
 
-    chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-      try {
-        if (info.menuItemId === 'replyguy-ai-generate' && tab?.id) {
-          await chrome.tabs.sendMessage(tab.id, {
-            type: 'SHOW_REPLY_GENERATOR',
-            selectedText: info.selectionText
-          });
+    // Check if onClicked is available
+    if (chrome.contextMenus.onClicked) {
+      chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+        try {
+          if (info.menuItemId === 'replyguy-ai-generate' && tab?.id) {
+            await chrome.tabs.sendMessage(tab.id, {
+              type: 'SHOW_REPLY_GENERATOR',
+              selectedText: info.selectionText
+            });
+          }
+        } catch (error) {
+          this.logger.warn('Context menu action failed', { error: (error as Error).message });
         }
-        
-        if (info.menuItemId === 'replyguy-ai-settings') {
-          // Open extension popup instead of non-existent options page
-          chrome.action.openPopup();
-        }
-      } catch (error) {
-        this.errorHandler.handle(error as Error, 'Context menu action');
-      }
-    });
+      });
+    }
   }
 
   /**
