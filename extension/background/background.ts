@@ -50,9 +50,29 @@ class BackgroundService {
           this.logger.info('Extension storage initialized on first install');
           
           // Open welcome onboarding page on first install
-          chrome.tabs.create({
-            url: chrome.runtime.getURL('onboarding.html')
-          });
+          try {
+            const onboardingUrl = chrome.runtime.getURL('onboarding.html');
+            this.logger.info('Attempting to open onboarding URL:', onboardingUrl);
+            
+            await chrome.tabs.create({
+              url: onboardingUrl
+            });
+            
+            this.logger.info('Onboarding tab created successfully');
+          } catch (error) {
+            this.logger.error('Failed to open onboarding page:', error);
+            
+            // Fallback: try opening popup instead
+            try {
+              const popupUrl = chrome.runtime.getURL('popup.html');
+              await chrome.tabs.create({
+                url: popupUrl
+              });
+              this.logger.info('Opened popup as fallback');
+            } catch (popupError) {
+              this.logger.error('Failed to open popup fallback:', popupError);
+            }
+          }
         }
         
         if (details.reason === 'update') {
