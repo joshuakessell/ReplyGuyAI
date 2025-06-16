@@ -1,5 +1,5 @@
 /**
- * Storage Service for Reddit Reply AI Extension
+ * Storage Service for ReplyGuy.AI Extension
  * Manages extension settings, reply history, and user preferences
  */
 
@@ -11,9 +11,9 @@ export class StorageService {
   private logger: Logger;
   private errorHandler: ErrorHandler;
   private storageKeys = {
-    settings: 'redditReplyAI_settings',
-    history: 'redditReplyAI_history',
-    preferences: 'redditReplyAI_preferences'
+    settings: 'replyGuyAI_settings',
+    history: 'replyGuyAI_history',
+    preferences: 'replyGuyAI_preferences'
   };
 
   constructor() {

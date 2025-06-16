@@ -1,5 +1,5 @@
 /**
- * Centralized error handling system for Reddit Reply AI Extension
+ * Centralized error handling system for ReplyGuy.AI Extension
  * Provides comprehensive error tracking, reporting, and recovery mechanisms
  */
 

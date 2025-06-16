@@ -1,5 +1,5 @@
 /**
- * Enterprise-grade logging utility for Reddit Reply AI Extension
+ * Enterprise-grade logging utility for ReplyGuy.AI Extension
  * Provides structured logging with configurable levels and storage
  */
 
