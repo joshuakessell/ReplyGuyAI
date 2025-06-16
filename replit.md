@@ -153,14 +153,14 @@ Changelog:
   * Generates extension icons and copies all necessary HTML/JS files
   * Provides unified build command for both web app and Chrome extension
   * Eliminates need for separate build-extension-only.js command
-- June 16, 2025. Implemented hover-based Reddit interface with API key validation
-  * Replaced button injection with elegant hover-based interface for reply textboxes
-  * "Use ReplyGuy.AI?" prompt appears when hovering over comment/reply boxes for 800ms
-  * Added real-time OpenAI API key validation during onboarding with loading animations
-  * Created modal customization interface with length, tone, and mood options
-  * Textbox dimming effect and seamless integration without UI clutter
-  * Works across all Reddit layouts with comprehensive textbox detection
-  * Enhanced user experience with professional modal design and error handling
+- June 16, 2025. Implemented context menu approach similar to Chrome's "Help Me Write"
+  * Replaced hover interface with right-click context menu on textboxes
+  * "ReplyGuy.AI" appears in context menu similar to Chrome's native "Help Me Write"
+  * Advanced conversation context extraction analyzing original post + comment chains
+  * Clean "Help me write" modal interface with Length, Tone, and Approach options
+  * Simplified popup configuration to only API key input, test, and save buttons
+  * Context-aware reply generation using full Reddit conversation thread as context
+  * Professional modal design matching Chrome's native interface patterns
 ```
 
 ## User Preferences

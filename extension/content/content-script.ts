@@ -1584,14 +1584,420 @@ class RedditReplyAI {
    */
   private handleMessage(request: any, sender: any, sendResponse: (response: any) => void): void {
     switch (request.type) {
-      case 'SHOW_REPLY_GENERATOR':
-        this.showStep(1);
+      case 'SHOW_HELP_WRITE_MODAL':
+        this.showHelpWriteModal();
         sendResponse({ success: true });
         break;
         
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
+  }
+
+  /**
+   * Show Help Me Write style modal
+   */
+  private showHelpWriteModal(): void {
+    try {
+      const activeTextbox = (window as any).replyGuyActiveTextbox;
+      if (!activeTextbox) {
+        this.logger.warn('No active textbox found for Help Me Write modal');
+        return;
+      }
+
+      // Extract conversation context
+      const conversationContext = this.extractConversationContext(activeTextbox);
+      
+      if (!conversationContext) {
+        this.logger.warn('Could not extract conversation context');
+        return;
+      }
+
+      this.currentPost = conversationContext;
+      this.showHelpWriteInterface(activeTextbox);
+      
+    } catch (error) {
+      this.errorHandler.handle(error as Error, 'Help Me Write modal');
+    }
+  }
+
+  /**
+   * Extract full conversation context from Reddit page
+   */
+  private extractConversationContext(textbox: Element): RedditPost | null {
+    try {
+      // Find the comment/post this textbox is replying to
+      const commentContainer = textbox.closest('[data-testid^="comment"]') || 
+                              textbox.closest('.Comment') ||
+                              textbox.closest('[thing-id]');
+      
+      let contextPost: RedditPost;
+      
+      if (commentContainer) {
+        // This is a reply to a comment - extract the comment chain
+        contextPost = this.extractCommentChain(commentContainer);
+      } else {
+        // This is a reply to the main post
+        contextPost = this.extractMainPost();
+      }
+      
+      return contextPost;
+      
+    } catch (error) {
+      this.logger.error('Failed to extract conversation context', { error: (error as Error).message });
+      return null;
+    }
+  }
+
+  /**
+   * Extract comment chain leading to the reply
+   */
+  private extractCommentChain(commentElement: Element): RedditPost {
+    const comments: string[] = [];
+    let currentElement = commentElement;
+    
+    // Walk up the comment tree to collect the conversation
+    while (currentElement) {
+      const commentText = this.extractCommentText(currentElement);
+      if (commentText) {
+        comments.unshift(commentText); // Add to beginning to maintain order
+      }
+      
+      // Find parent comment
+      currentElement = currentElement.parentElement?.closest('[data-testid^="comment"]') ||
+                      currentElement.parentElement?.closest('.Comment') ||
+                      currentElement.parentElement?.closest('[thing-id]') ||
+                      null;
+    }
+    
+    // Get the original post as well
+    const mainPost = this.extractMainPost();
+    
+    return {
+      id: mainPost.id,
+      title: mainPost.title,
+      content: mainPost.content + '\n\n--- Comment Thread ---\n' + comments.join('\n\n'),
+      author: mainPost.author,
+      subreddit: mainPost.subreddit,
+      upvotes: mainPost.upvotes,
+      comments: mainPost.comments,
+      url: mainPost.url,
+      timestamp: mainPost.timestamp,
+      type: 'comment'
+    };
+  }
+
+  /**
+   * Extract main post content
+   */
+  private extractMainPost(): RedditPost {
+    return this.extractor.extractCurrentContent() || {
+      id: this.generateIdFromUrl(),
+      title: this.extractPostTitle(),
+      content: this.extractPostContent(),
+      author: 'unknown',
+      subreddit: this.extractSubreddit(),
+      upvotes: 0,
+      comments: 0,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+      type: 'post'
+    };
+  }
+
+  /**
+   * Extract comment text from comment element
+   */
+  private extractCommentText(commentElement: Element): string {
+    const textSelectors = [
+      '[data-testid="comment"] > div > div > div',
+      '.Comment__body',
+      '.md',
+      '.usertext-body'
+    ];
+    
+    for (const selector of textSelectors) {
+      const textElement = commentElement.querySelector(selector);
+      if (textElement) {
+        return this.cleanTextContent(textElement.textContent || '');
+      }
+    }
+    
+    return '';
+  }
+
+  /**
+   * Show Help Me Write interface
+   */
+  private showHelpWriteInterface(textbox: Element): void {
+    // Create modal overlay similar to Chrome's Help Me Write
+    const overlay = document.createElement('div');
+    overlay.className = 'replyguy-help-write-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    
+    // Create modal content
+    const modal = this.createHelpWriteModal();
+    overlay.appendChild(modal);
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+    
+    // Close on escape key
+    const escapeHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    document.body.appendChild(overlay);
+    
+    // Store reference to textbox for later use
+    (modal as any).targetTextbox = textbox;
+  }
+
+  /**
+   * Create Help Me Write modal
+   */
+  private createHelpWriteModal(): HTMLElement {
+    const modal = document.createElement('div');
+    modal.className = 'replyguy-help-write-modal';
+    modal.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    modal.innerHTML = `
+      <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Help me write
+        </h2>
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">Generate a contextual reply based on the conversation</p>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; color: #1f2937; font-weight: 500; font-size: 14px;">Length</label>
+        <select id="help-write-length" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+          <option value="small">Short (~25 words)</option>
+          <option value="medium" selected>Medium (~75 words)</option>
+          <option value="large">Long (~150 words)</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; color: #1f2937; font-weight: 500; font-size: 14px;">Tone</label>
+        <select id="help-write-tone" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+          <option value="neutral" selected>Neutral</option>
+          <option value="friendly">Friendly</option>
+          <option value="professional">Professional</option>
+          <option value="casual">Casual</option>
+          <option value="enthusiastic">Enthusiastic</option>
+          <option value="skeptical">Skeptical</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; margin-bottom: 8px; color: #1f2937; font-weight: 500; font-size: 14px;">Approach</label>
+        <select id="help-write-mood" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+          <option value="supportive" selected>Supportive</option>
+          <option value="curious">Curious</option>
+          <option value="helpful">Helpful</option>
+          <option value="thoughtful">Thoughtful</option>
+          <option value="humorous">Humorous</option>
+          <option value="serious">Serious</option>
+        </select>
+      </div>
+      
+      <div style="display: flex; gap: 12px;">
+        <button id="help-write-cancel" style="flex: 1; padding: 10px 16px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">Cancel</button>
+        <button id="help-write-create" style="flex: 2; padding: 10px 16px; border: none; background: #2563eb; color: white; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          <span id="create-text">Create</span>
+          <div id="create-loading" style="display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </button>
+      </div>
+    `;
+    
+    // Add event listeners
+    const cancelBtn = modal.querySelector('#help-write-cancel') as HTMLElement;
+    const createBtn = modal.querySelector('#help-write-create') as HTMLElement;
+    
+    cancelBtn.addEventListener('click', () => {
+      modal.closest('.replyguy-help-write-overlay')?.remove();
+    });
+    
+    createBtn.addEventListener('click', () => {
+      this.generateHelpWriteReply(modal);
+    });
+    
+    return modal;
+  }
+
+  /**
+   * Generate reply from Help Me Write modal
+   */
+  private async generateHelpWriteReply(modal: HTMLElement): Promise<void> {
+    try {
+      const createText = modal.querySelector('#create-text') as HTMLElement;
+      const createLoading = modal.querySelector('#create-loading') as HTMLElement;
+      const createBtn = modal.querySelector('#help-write-create') as HTMLButtonElement;
+      
+      // Show loading
+      createText.style.display = 'none';
+      createLoading.style.display = 'block';
+      createBtn.disabled = true;
+      
+      // Get customization options
+      const lengthSelect = modal.querySelector('#help-write-length') as HTMLSelectElement;
+      const toneSelect = modal.querySelector('#help-write-tone') as HTMLSelectElement;
+      const moodSelect = modal.querySelector('#help-write-mood') as HTMLSelectElement;
+      
+      const customization: CustomizationOptions = {
+        length: lengthSelect.value as any,
+        tone: toneSelect.value as any,
+        mood: moodSelect.value as any,
+        direction: 'supportive'
+      };
+      
+      // Generate reply via background script
+      const response = await chrome.runtime.sendMessage({
+        type: 'GENERATE_REPLY',
+        data: {
+          post: this.currentPost,
+          customization
+        }
+      });
+      
+      if (response.success) {
+        this.insertReplyIntoTextbox((modal as any).targetTextbox, response.reply.content);
+        modal.closest('.replyguy-help-write-overlay')?.remove();
+      } else {
+        throw new Error(response.error || 'Failed to generate reply');
+      }
+      
+    } catch (error) {
+      // Hide loading
+      const createText = modal.querySelector('#create-text') as HTMLElement;
+      const createLoading = modal.querySelector('#create-loading') as HTMLElement;
+      const createBtn = modal.querySelector('#help-write-create') as HTMLButtonElement;
+      
+      createText.style.display = 'inline';
+      createLoading.style.display = 'none';
+      createBtn.disabled = false;
+      
+      this.logger.error('Failed to generate reply', { error: (error as Error).message });
+      alert('Failed to generate reply. Please check your API key in the extension settings.');
+    }
+  }
+
+  /**
+   * Insert generated reply into textbox
+   */
+  private insertReplyIntoTextbox(textbox: Element, content: string): void {
+    if (textbox.tagName.toLowerCase() === 'textarea') {
+      (textbox as HTMLTextAreaElement).value = content;
+      textbox.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (textbox.hasAttribute('contenteditable')) {
+      textbox.textContent = content;
+      textbox.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    // Focus the textbox
+    (textbox as HTMLElement).focus();
+  }
+
+  /**
+   * Extract post title
+   */
+  private extractPostTitle(): string {
+    const titleSelectors = [
+      '[data-testid="post-content"] h1',
+      '.Post__title',
+      '.title a',
+      'h1'
+    ];
+    
+    for (const selector of titleSelectors) {
+      const titleElement = document.querySelector(selector);
+      if (titleElement && titleElement.textContent) {
+        return this.cleanTextContent(titleElement.textContent);
+      }
+    }
+    
+    return 'Reddit Post';
+  }
+
+  /**
+   * Extract post content
+   */
+  private extractPostContent(): string {
+    const contentSelectors = [
+      '[data-testid="post-content"] [data-click-id="text"]',
+      '.Post__body',
+      '.usertext-body',
+      '[data-testid="post-content"] > div > div'
+    ];
+    
+    for (const selector of contentSelectors) {
+      const contentElement = document.querySelector(selector);
+      if (contentElement && contentElement.textContent) {
+        return this.cleanTextContent(contentElement.textContent);
+      }
+    }
+    
+    return '';
+  }
+
+  /**
+   * Extract subreddit name
+   */
+  private extractSubreddit(): string {
+    const subredditMatch = window.location.pathname.match(/\/r\/([^\/]+)/);
+    return subredditMatch ? subredditMatch[1] : 'unknown';
+  }
+
+  /**
+   * Generate ID from URL
+   */
+  private generateIdFromUrl(): string {
+    return window.location.pathname.split('/').pop() || 'unknown';
+  }
+
+  /**
+   * Clean text content
+   */
+  private cleanTextContent(text: string): string {
+    return text.replace(/\s+/g, ' ').trim();
   }
 }
 
