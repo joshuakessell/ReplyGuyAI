@@ -147,6 +147,12 @@ Changelog:
   * Created visual walkthrough explaining how to use extension on Reddit
   * Fixed manifest web accessible resources to properly load onboarding page
   * Extension now provides complete guided setup experience for new users
+- June 16, 2025. Updated build.js to include complete Chrome extension build process
+  * Consolidated all extension building functionality into single build.js script
+  * Includes background script, content script, popup, and onboarding files
+  * Generates extension icons and copies all necessary HTML/JS files
+  * Provides unified build command for both web app and Chrome extension
+  * Eliminates need for separate build-extension-only.js command
 ```
 
 ## User Preferences
